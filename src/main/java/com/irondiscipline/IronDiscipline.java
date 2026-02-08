@@ -103,6 +103,9 @@ public class IronDiscipline extends JavaPlugin {
         if (discordManager != null) {
             discordManager.shutdown();
         }
+        if (linkManager != null) {
+            linkManager.shutdown();
+        }
 
         // DB接続クローズ
         if (dbConnection != null) {

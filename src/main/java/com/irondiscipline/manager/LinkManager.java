@@ -3,12 +3,14 @@ package com.irondiscipline.manager;
 import com.irondiscipline.IronDiscipline;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.bukkit.Bukkit;
 
 import java.io.*;
 import java.security.SecureRandom;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Discord-Minecraft アカウント連携マネージャー
@@ -30,14 +32,22 @@ public class LinkManager {
     private File dataFile;
     private final SecureRandom random = new SecureRandom();
     private static final String CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     public LinkManager(IronDiscipline plugin) {
         this.plugin = plugin;
         this.dataFile = new File(plugin.getDataFolder(), "links.json");
         loadData();
 
-        // 期限切れコードのクリーンアップ（1分毎）
-        Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, this::cleanupExpiredCodes, 20 * 60, 20 * 60);
+        // 期限切れコードのクリーンアップ（1分毎）- Folia対応
+        scheduler.scheduleAtFixedRate(this::cleanupExpiredCodes, 60, 60, TimeUnit.SECONDS);
+    }
+
+    /**
+     * シャットダウン時にスケジューラーを停止
+     */
+    public void shutdown() {
+        scheduler.shutdown();
     }
 
     /**
@@ -155,7 +165,8 @@ public class LinkManager {
     }
 
     private void saveData() {
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        // Folia対応: ExecutorServiceで非同期実行
+        scheduler.execute(() -> {
             try {
                 LinkData data = new LinkData();
                 for (Map.Entry<Long, UUID> entry : discordToMinecraft.entrySet()) {
