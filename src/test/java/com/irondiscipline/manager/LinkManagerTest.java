@@ -1,14 +1,11 @@
 package com.irondiscipline.manager;
 
 import com.irondiscipline.IronDiscipline;
-import org.bukkit.Bukkit;
-import org.bukkit.scheduler.BukkitScheduler;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 
 import java.nio.file.Path;
@@ -16,19 +13,15 @@ import java.util.UUID;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class LinkManagerTest {
 
     @Mock
     private IronDiscipline plugin;
-    @Mock
-    private BukkitScheduler scheduler;
 
     private LinkManager linkManager;
     private AutoCloseable mocks;
-    private MockedStatic<Bukkit> bukkitMock;
 
     @TempDir
     Path tempDir;
@@ -37,28 +30,19 @@ class LinkManagerTest {
     void setUp() {
         mocks = MockitoAnnotations.openMocks(this);
 
-        // Bukkit Static Mocks
-        bukkitMock = mockStatic(Bukkit.class);
-        bukkitMock.when(Bukkit::getScheduler).thenReturn(scheduler);
-
         // Plugin Mock
         when(plugin.getDataFolder()).thenReturn(tempDir.toFile());
         when(plugin.getLogger()).thenReturn(Logger.getLogger("LinkManagerTest"));
-
-        // Scheduler Mock
-        doAnswer(invocation -> {
-            Runnable r = invocation.getArgument(1);
-            r.run();
-            return null;
-        }).when(scheduler).runTaskAsynchronously(any(IronDiscipline.class), any(Runnable.class));
 
         linkManager = new LinkManager(plugin);
     }
 
     @AfterEach
     void tearDown() throws Exception {
-        if (bukkitMock != null) bukkitMock.close();
-        if (mocks != null) mocks.close();
+        if (linkManager != null)
+            linkManager.shutdown();
+        if (mocks != null)
+            mocks.close();
     }
 
     @Test
@@ -68,7 +52,7 @@ class LinkManagerTest {
 
         assertNotNull(code);
         assertEquals(8, code.length());
-        
+
         // Re-generating should give a different code and invalidate old
         String code2 = linkManager.generateLinkCode(discordId);
         assertNotEquals(code, code2);
@@ -110,15 +94,22 @@ class LinkManagerTest {
     }
 
     @Test
-    void testPersistence() {
+    void testPersistence() throws InterruptedException {
         long discordId = 987654321L;
         UUID mcId = UUID.randomUUID();
         String code = linkManager.generateLinkCode(discordId);
         linkManager.attemptLink(mcId, code);
 
+        // 非同期保存の完了を待つ
+        Thread.sleep(500);
+
         // Create new instance to test loading
         LinkManager newManager = new LinkManager(plugin);
-        assertTrue(newManager.isLinked(discordId));
-        assertEquals(mcId, newManager.getMinecraftId(discordId));
+        try {
+            assertTrue(newManager.isLinked(discordId));
+            assertEquals(mcId, newManager.getMinecraftId(discordId));
+        } finally {
+            newManager.shutdown();
+        }
     }
 }
