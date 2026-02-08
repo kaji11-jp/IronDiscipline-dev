@@ -1,0 +1,184 @@
+package com.irondiscipline.manager;
+
+import com.irondiscipline.IronDiscipline;
+import com.irondiscipline.model.Rank;
+import com.irondiscipline.util.TaskScheduler;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitScheduler;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.ScoreboardManager;
+import org.bukkit.scoreboard.Team;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.MockitoAnnotations;
+
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+/**
+ * RankManager テスト (LuckPerms非依存版)
+ */
+class RankManagerTest {
+
+    @Mock
+    private IronDiscipline plugin;
+    @Mock
+    private RankStorageManager rankStorage;
+    @Mock
+    private ConfigManager configManager;
+    @Mock
+    private Player player;
+    @Mock
+    private BukkitScheduler scheduler;
+    @Mock
+    private TaskScheduler taskScheduler;
+
+    private RankManager rankManager;
+    private AutoCloseable mocks;
+    private MockedStatic<Bukkit> bukkitMock;
+
+    @BeforeEach
+    void setUp() {
+        mocks = MockitoAnnotations.openMocks(this);
+
+        // Bukkit Static Mocks
+        bukkitMock = mockStatic(Bukkit.class);
+        bukkitMock.when(Bukkit::getScheduler).thenReturn(scheduler);
+
+        ScoreboardManager scoreboardManager = mock(ScoreboardManager.class);
+        Scoreboard scoreboard = mock(Scoreboard.class);
+        when(scoreboardManager.getMainScoreboard()).thenReturn(scoreboard);
+        Team team = mock(Team.class);
+        when(scoreboard.getTeam(anyString())).thenReturn(team);
+        when(scoreboard.registerNewTeam(anyString())).thenReturn(team);
+
+        bukkitMock.when(Bukkit::getScoreboardManager).thenReturn(scoreboardManager);
+
+        // Basic Plugin Setup
+        when(plugin.getConfigManager()).thenReturn(configManager);
+        when(plugin.getTaskScheduler()).thenReturn(taskScheduler);
+        when(configManager.getRankMetaKey()).thenReturn("rank");
+
+        // TaskScheduler mocks
+        doAnswer(invocation -> {
+            Runnable r = invocation.getArgument(0);
+            r.run();
+            return null;
+        }).when(taskScheduler).runGlobal(any(Runnable.class));
+
+        doAnswer(invocation -> {
+            Runnable r = invocation.getArgument(1);
+            r.run();
+            return null;
+        }).when(taskScheduler).runEntity(any(Entity.class), any(Runnable.class));
+
+        // Logger mock
+        when(plugin.getLogger()).thenReturn(java.util.logging.Logger.getLogger("RankManagerTest"));
+
+        rankManager = new RankManager(plugin, rankStorage);
+    }
+
+    @AfterEach
+    void tearDown() throws Exception {
+        if (bukkitMock != null)
+            bukkitMock.close();
+        if (mocks != null)
+            mocks.close();
+    }
+
+    @Test
+    void testGetRank_DefaultPrivate() {
+        UUID uuid = UUID.randomUUID();
+        when(player.getUniqueId()).thenReturn(uuid);
+        when(rankStorage.getRankCached(uuid)).thenReturn(Rank.PRIVATE);
+
+        Rank rank = rankManager.getRank(player);
+        assertEquals(Rank.PRIVATE, rank, "デフォルト階級はPRIVATEであるべき");
+    }
+
+    @Test
+    void testGetRank_Specific() {
+        UUID uuid = UUID.randomUUID();
+        when(player.getUniqueId()).thenReturn(uuid);
+        when(rankStorage.getRankCached(uuid)).thenReturn(Rank.MAJOR);
+
+        Rank rank = rankManager.getRank(player);
+        assertEquals(Rank.MAJOR, rank);
+    }
+
+    @Test
+    void testPromote() {
+        UUID uuid = UUID.randomUUID();
+        when(player.getUniqueId()).thenReturn(uuid);
+        when(player.getName()).thenReturn("TestPlayer");
+        when(player.isOnline()).thenReturn(true);
+        when(configManager.getMessage(anyString(), anyString(), anyString())).thenReturn("Message");
+
+        // PRIVATEから開始
+        when(rankStorage.getRankCached(uuid)).thenReturn(Rank.PRIVATE);
+        when(rankStorage.setRank(eq(uuid), anyString(), eq(Rank.PRIVATE_FIRST_CLASS)))
+                .thenReturn(CompletableFuture.completedFuture(true));
+
+        Rank newRank = rankManager.promote(player).join();
+
+        assertNotNull(newRank);
+        assertEquals(Rank.PRIVATE_FIRST_CLASS, newRank);
+
+        // ストレージへの保存が呼ばれたことを確認
+        verify(rankStorage).setRank(eq(uuid), anyString(), eq(Rank.PRIVATE_FIRST_CLASS));
+    }
+
+    @Test
+    void testDemote() {
+        UUID uuid = UUID.randomUUID();
+        when(player.getUniqueId()).thenReturn(uuid);
+        when(player.getName()).thenReturn("TestPlayer");
+        when(player.isOnline()).thenReturn(true);
+        when(configManager.getMessage(anyString(), anyString(), anyString())).thenReturn("Message");
+
+        // CORPORALから開始
+        when(rankStorage.getRankCached(uuid)).thenReturn(Rank.CORPORAL);
+        when(rankStorage.setRank(eq(uuid), anyString(), eq(Rank.PRIVATE_FIRST_CLASS)))
+                .thenReturn(CompletableFuture.completedFuture(true));
+
+        Rank newRank = rankManager.demote(player).join();
+
+        assertNotNull(newRank);
+        assertEquals(Rank.PRIVATE_FIRST_CLASS, newRank);
+    }
+
+    @Test
+    void testPromote_MaxRank() {
+        UUID uuid = UUID.randomUUID();
+        when(player.getUniqueId()).thenReturn(uuid);
+        // COMMANDERは最高階級
+        when(rankStorage.getRankCached(uuid)).thenReturn(Rank.COMMANDER);
+
+        Rank newRank = rankManager.promote(player).join();
+
+        assertNull(newRank, "最高階級からは昇進できないはず");
+        verify(rankStorage, never()).setRank(any(), anyString(), any());
+    }
+
+    @Test
+    void testDemote_MinRank() {
+        UUID uuid = UUID.randomUUID();
+        when(player.getUniqueId()).thenReturn(uuid);
+        // PRIVATEは最低階級
+        when(rankStorage.getRankCached(uuid)).thenReturn(Rank.PRIVATE);
+
+        Rank newRank = rankManager.demote(player).join();
+
+        assertNull(newRank, "最低階級からは降格できないはず");
+        verify(rankStorage, never()).setRank(any(), anyString(), any());
+    }
+}

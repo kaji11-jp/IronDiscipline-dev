@@ -1,0 +1,341 @@
+prefix: "&8[&cIronDiscipline&8] "
+
+# Rang
+rank_promoted: "&a%player% wurde zum &f%rank%&a befördert."
+rank_demoted: "&e%player% wurde zum &f%rank%&e degradiert."
+rank_changed_self: "&aDein Rang wurde zu &f%rank%&a geändert."
+rank_already_max: "&cDu kannst nicht weiter befördert werden."
+rank_already_min: "&cDu kannst nicht weiter degradiert werden."
+
+# PTS (Erlaubnis zu sprechen)
+pts_granted: "&aSprecherlaubnis für %player% für &f%seconds% Sekunden&a erteilt."
+pts_received: "&aDu hast die Erlaubnis zu sprechen erhalten. Verbleibend: &f%seconds% Sekunden&a."
+pts_expired: "&eSprecherlaubnis ist abgelaufen."
+pts_required: "&cDu benötigst die Erlaubnis eines Vorgesetzten, um zu sprechen. Drücke zweimal Schleichen (Double Sneak), um PTS anzufordern."
+pts_request_sent: "&ePTS-Anfrage gesendet. Warte auf Erlaubnis."
+pts_request_notify: "&e%player% bittet um Sprecherlaubnis. &7/grant %player%"
+pts_request_timeout: "&cPTS-Anfrage Zeitüberschreitung. Bitte erneut anfordern."
+
+# Funk
+radio_joined: "&aFunkfrequenz &f%freq%&a beigetreten."
+radio_left: "&eFunk verlassen."
+radio_usage: "&cVerwendung: /radio <Frequenz> oder /radio off"
+
+# Gefängnis (Jail)
+jail_sent: "&c%player% wurde inhaftiert. Grund: %reason%"
+jail_released: "&a%player% wurde entlassen."
+jail_you_jailed: "&cDu wurdest inhaftiert. Grund: %reason%"
+jail_you_released: "&aDu wurdest entlassen. Kehre zum Dienst zurück."
+jail_not_set: "&cGefängnisstandort ist nicht gesetzt. Verwende /setjail."
+jail_location_set: "&aGefängnisstandort gesetzt."
+
+# Allgemein
+player_not_found: "&cSpieler nicht gefunden: %player%"
+no_permission: "&cDu hast keine Berechtigung."
+config_reloaded: "&aKonfiguration neu geladen."
+
+# Rangbeschränkungen
+rank_insufficient: "&cRang eines Unterleutnants oder höher erforderlich. Benötigt: {required}"
+rank_cannot_operate: "&cDu hast keine Berechtigung, {target} ({target_rank}) zu bearbeiten. Du kannst nur Ränge bearbeiten, die niedriger sind als deiner."
+
+# Konfigurierbare Strings
+pts_request_prefix: "&8[&ePTS-Anfrage&8]"
+radio_format: "&8[&bFunk %freq%&8] &7%rank% %player%&8: &f%message%"
+jail_blocked_message: "&cDu bist inhaftiert. Dir ist das Sprechen nicht gestattet."
+
+# WarnCommand
+command_usage_warn: "&cVerwendung: /warn <Spieler> <Grund>"
+warn_success: "&a%player% verwarnt (Anzahl: %count%)"
+warn_received: "&c&l[WARNUNG]&r&c %reason% &7(Warnung #%count%)"
+warn_kick_broadcast: "&c%player% wurde wegen %count% Verwarnungen gekickt."
+warn_jail_broadcast: "&e%player% wurde wegen %count% Verwarnungen inhaftiert."
+warn_none: "&a%player% hat keine Verwarnungen."
+warn_history_header: "&6=== Verwarnungsverlauf für %player% (%count%) ==="
+warn_history_entry: "&7%index%. &f%reason% &8(%date%)"
+command_usage_clearwarnings: "&cVerwendung: /clearwarnings <Spieler>"
+warn_clear_success: "&aAlle Verwarnungen für %player% gelöscht."
+command_usage_unwarn: "&cVerwendung: /unwarn <Spieler>"
+warn_remove_success: "&aLetzte Verwarnung für %player% entfernt."
+warn_cannot_warn_officer: "&cMilitärpolizei kann keine Offiziere verwarnen."
+
+# IronDisciplineCommand
+command_usage_iron_kick: "&cVerwendung: /iron kick <Spieler> [Grund]"
+kick_broadcast: "&c&l[HINWEIS]&r &f%player% &7wurde gekickt. Grund: %reason%"
+kick_success: "&a%player% gekickt."
+command_usage_iron_ban: "&cVerwendung: /iron ban <Spieler> [Grund]"
+ban_broadcast: "&4&l[BAN]&r &f%player% &7wurde GEBANNT. Grund: %reason%"
+ban_success: "&a%player% gebannt."
+kick_reason_prefix: "§c§lDu wurdest GEKICKT\n\n§fGrund: "
+ban_reason_prefix: "§c§lDu wurdest GEBANNT\n\n§fGrund: "
+
+# LinkCommand
+command_link_usage: "&cDieser Befehl kann nur von einem Spieler ausgeführt werden."
+link_already_linked: "&a✅ Bereits mit Discord verbunden."
+link_how_to_unlink: "&7Zum Trennen: &f/unlink"
+link_not_linked: "&e❌ Nicht mit Discord verbunden."
+link_instructions_header: "&7Zum Verbinden:"
+link_instructions_1: "&f1. Führe &e/link &fin Discord aus."
+link_instructions_2: "&f2. Gib den Code mit &e/link <Code> &fim Spiel ein."
+link_success_title: "&a&l✅ Verbindung erfolgreich!"
+link_success_message: "&aMit Discord-Konto verbunden."
+link_invalid_code: "&cUngültiger Bestätigungscode."
+link_code_expired: "&cBestätigungscode ist abgelaufen."
+link_reacquire_code: "&7Führe &f/link &7in Discord aus, um einen neuen Code zu erhalten."
+command_usage_warnings: "&cVerwendung: /warnings <Spieler>"
+error_specify_player: "&cBitte gib einen Spieler an."
+link_success_broadcast: "&a🔗 Verbindung abgeschlossen | **%player%** hat sein Minecraft-Konto verbunden."
+
+# StorageManager Logs
+db_connected: "&aDatenbankverbindung erfolgreich: %type%"
+db_connection_failed: "&cDatenbankverbindung fehlgeschlagen"
+db_h2_driver_not_found: "&cH2-Treiber nicht gefunden"
+log_save_failed_kill: "&cFehler beim Speichern des Kill-Logs"
+log_load_failed_kill: "&cFehler beim Laden der Kill-Logs"
+log_save_failed_jail: "&cFehler beim Speichern der Gefängnisdaten"
+log_delete_failed_jail: "&cFehler beim Löschen der Gefängnisdaten"
+log_load_failed_location: "&cFehler beim Laden des ursprünglichen Standorts"
+log_load_failed_inventory: "&cFehler beim Laden der Inventarsicherung"
+log_load_failed_armor: "&cFehler beim Laden der Rüstungssicherung"
+log_check_failed_jail: "&cFehler beim Prüfen des Gefängnisstatus"
+log_save_failed_warn: "&cFehler beim Speichern der Verwarnungsdaten"
+log_load_failed_warn: "&cFehler beim Laden der Verwarnungsdaten"
+log_clear_failed_warn: "&cFehler beim Löschen der Verwarnungen"
+log_delete_failed_warn_last: "&cFehler beim Löschen der letzten Verwarnung"
+log_cleanup_success: "&aAlte Logs gelöscht: %count%"
+log_cleanup_failed: "&cFehler beim Bereinigen alter Logs"
+db_closed: "&aDatenbankverbindung geschlossen"
+db_close_failed: "&cFehler beim Schließen der Datenbankverbindung"
+
+# RadioManager
+radio_not_joined: "&cDu bist in keiner Funkfrequenz. Tritt mit /radio <Frequenz> bei."
+
+# PlaytimeManager
+time_format_days: "%dT %dst %dm"
+time_format_hours: "%dst %dm"
+time_format_minutes: "%dm"
+playtime_save_failed: "&cFehler beim Speichern der Spielzeitdaten: %error%"
+playtime_load_success: "&aSpielzeitdaten geladen"
+playtime_load_failed: "&cFehler beim Laden der Spielzeitdaten: %error%"
+
+# ExamQuestionManager
+exam_gui_title: "&6&l[Prüfungsfragen]"
+exam_gui_lore: "&7---\n&7Wähle eine Antwort unten"
+exam_gui_click_to_answer: "&7Klicken zum Antworten"
+exam_answer_received: "&aAntwort erhalten: &f%answer%"
+
+# Exam Templates (Q1-Q5)
+exam_q1_question: "Was ist die korrekte Reihenfolge eines Saluts?"
+exam_q1_c1: "Augenkontakt -> Salutieren -> 'Treue!'"
+exam_q1_c2: "'Treue!' -> Salutieren -> Augenkontakt"
+exam_q1_c3: "Salutieren -> Augenkontakt -> 'Treue!'"
+exam_q1_c4: "Nur Salutieren"
+
+exam_q2_question: "Was ist erforderlich, bevor man einen Vorgesetzten anspricht?"
+exam_q2_c1: "PTS (Sprecherlaubnis) erhalten"
+exam_q2_c2: "Salutieren"
+exam_q2_c3: "Sich vorstellen"
+exam_q2_c4: "Nichts tun"
+
+exam_q3_question: "Was ist die richtige Reaktion, wenn man einen Befehl nicht ausführen kann?"
+exam_q3_c1: "Grund nennen und Alternative vorschlagen"
+exam_q3_c2: "Still ignorieren"
+exam_q3_c3: "Sofort protestieren"
+exam_q3_c4: "Auf einen anderen Soldaten schieben"
+
+exam_q4_question: "In welche Kategorie fällt ein Unterleutnant?"
+exam_q4_c1: "Offizier"
+exam_q4_c2: "Unteroffizier"
+exam_q4_c3: "Mannschaft"
+exam_q4_c4: "Fachoffizier"
+
+exam_q5_question: "Was solltest du tun, wenn du im Kampf einen verwundeten Kameraden findest?"
+exam_q5_c1: "Sanitäter rufen"
+exam_q5_c2: "Ignorieren und weiterkämpfen"
+exam_q5_c3: "Alleine retten"
+exam_q5_c4: "Zurückziehen"
+
+# DemoteCommand
+command_usage_demote: "&cVerwendung: /demote <Spieler>"
+
+# DivisionCommand
+command_division_set_usage: "&cVerwendung: /division set <Spieler> <Abteilung>"
+player_not_found_simple: "&cSpieler nicht gefunden"
+division_set_sender: "&a%player% wurde %division% zugewiesen."
+division_set_target: "&eDu wurdest %division% zugewiesen."
+command_division_remove_usage: "&cVerwendung: /division remove <Spieler>"
+division_remove_sender: "&a%player% aus der Abteilung entfernt."
+division_remove_target: "&eDu wurdest aus deiner Abteilung entfernt."
+division_list_header: "&6=== Abteilungen ==="
+division_list_entry: "%division% &7(%count% Mitglieder)"
+division_info_none: "&7%player% ist in keiner Abteilung."
+division_info_display: "&f%player%s Abteilung: %division%"
+command_division_members_usage: "&cVerwendung: /division members <Abteilung>"
+division_members_header: "&6=== Mitglieder von %division% ==="
+division_members_empty: "&7Keine Mitglieder."
+division_help_header: "&6=== Abteilungsbefehle ==="
+division_help_set: "&e/division set <Spieler> <Abteilung> &7- Zuweisen"
+division_help_remove: "&e/division remove <Spieler> &7- Entfernen"
+division_help_list: "&e/division list &7- Abteilungen auflisten"
+division_help_info: "&e/division info [Spieler] &7- Abteilung prüfen"
+division_help_members: "&e/division members <Abteilung> &7- Mitglieder auflisten"
+
+# ExamCommand
+command_player_only: "&cDieser Befehl kann nur von einem Spieler ausgeführt werden."
+exam_permission_denied: "&cZugriff verweigert. Rang eines Unterleutnants oder höher erforderlich."
+command_exam_start_usage: "&cVerwendung: /exam start <Spieler> <Typ>"
+command_exam_pass_usage: "&cVerwendung: /exam pass <Spieler>"
+command_exam_fail_usage: "&cVerwendung: /exam fail <Spieler>"
+command_exam_quiz_usage: "&cVerwendung: /exam quiz <Spieler>"
+exam_help_header: "&6=== Prüfungsbefehle ==="
+exam_help_start: "&e/exam start <Spieler> <Typ> &f- Prüfung starten"
+exam_help_pass: "&e/exam pass <Spieler> &f- Prüfung bestehen (Befördern)"
+exam_help_fail: "&e/exam fail <Spieler> &f- Prüfung nicht bestehen"
+exam_help_quiz: "&e/exam quiz <Spieler> &f- Schriftliche Prüfung starten"
+exam_help_sts: "&e/exam sts &f- STS (Shoulder to Shoulder) Befehl"
+
+# GrantCommand
+command_grant_usage: "&cVerwendung: /grant <Spieler> [Sekunden]"
+grant_invalid_seconds: "&cSekunden müssen eine positive Ganzzahl sein."
+grant_invalid_number: "&cUngültige Zahl: %input%"
+
+# IronDisciplineCommand
+command_iron_version: "&6IronDiscipline v%version%"
+command_iron_cleanup_started: "&aBereinigung alter Logs gestartet."
+command_iron_tp_usage: "&cVerwendung: /iron tp <Spieler>"
+iron_tp_success: "&aZu %player% teleportiert."
+command_iron_bring_usage: "&cVerwendung: /iron bring <Spieler>"
+iron_bring_success_sender: "&a%player% zu dir gebracht."
+iron_bring_success_target: "&eDu wurdest von einem Vorgesetzten gerufen."
+command_iron_freeze_usage: "&cVerwendung: /iron freeze <Spieler>"
+iron_freeze_success_sender: "&a%player% eingefroren."
+iron_freeze_success_target: "&c&l[EINGEFROREN]&r&c Bewegung deaktiviert."
+command_iron_unfreeze_usage: "&cVerwendung: /iron unfreeze <Spieler>"
+iron_unfreeze_success_sender: "&a%player% aufgetaut."
+iron_unfreeze_success_target: "&aDu wurdest aufgetaut."
+iron_not_frozen: "&c%player% ist nicht eingefroren."
+command_iron_announce_usage: "&cVerwendung: /iron announce <Nachricht>"
+iron_announce_title: "&6&l[ANKÜNDIGUNG]"
+iron_announce_chat: "&6&l[ANKÜNDIGUNG]&r &f%message%"
+iron_announce_sent: "&aAnkündigung gesendet."
+iron_help_header: "&6===== IronDiscipline Befehle ====="
+iron_help_reload: "&e/iron reload &7- Konfig neu laden"
+iron_help_version: "&e/iron version &7- Version anzeigen"
+iron_help_cleanup: "&e/iron cleanup &7- Logs bereinigen"
+iron_help_admin_header: "&6----- Admin-Befehle -----"
+iron_help_kick: "&e/iron kick <Spieler> [Grund] &7- Kicken"
+iron_help_ban: "&e/iron ban <Spieler> [Grund] &7- Bannen"
+iron_help_tp: "&e/iron tp <Spieler> &7- Teleportieren"
+iron_help_bring: "&e/iron bring <Spieler> &7- Herholen"
+iron_help_freeze: "&e/iron freeze <Spieler> &7- Einfrieren"
+iron_help_unfreeze: "&e/iron unfreeze <Spieler> &7- Auftauen"
+iron_help_announce: "&e/iron announce <Nachricht> &7- Ankündigung"
+
+# JailCommand
+command_jail_usage: "&cVerwendung: /jail <Spieler> [Grund]"
+jail_reason_default: "Kein Grund angegeben"
+jail_failed: "&cFehler beim Inhaftieren. Spieler ist bereits inhaftiert oder Konfigurationsfehler."
+jail_reason_suggestion_1: "Ungehorsam"
+jail_reason_suggestion_2: "Befehlsverweigerung"
+jail_reason_suggestion_3: "Fehlverhalten"
+
+# KillLogCommand
+killlog_searching: "&eSuche Kampf-Logs für %player%..."
+killlog_header_player: "&6===== Kampf-Log (%player%) ====="
+killlog_not_found: "&7Keine Logs gefunden."
+killlog_header_latest: "&6===== Neueste Kampf-Logs ====="
+killlog_environment: "Umgebung"
+killlog_entry_format: "&7[%date%]%killer_color% %killer% &7-> &c%victim% &7| &b%weapon% &7(%distance%)"
+
+# LinkCommand
+link_success_notification_title: "🔗 Verbindung vollständig"
+
+# PlaytimeCommand
+playtime_header: "&6=== Spielzeit: %player% ==="
+playtime_total: "&7Gesamt: &f%time%"
+playtime_today: "&7Heute: &f%time%"
+playtime_ranking_header: "&6=== Spielzeit-Rangliste ==="
+playtime_rank_1: "&6&l1."
+playtime_rank_2: "&f&l2."
+playtime_rank_3: "&c&l3."
+playtime_rank_other: "&7%rank%."
+
+# PromoteCommand
+command_promote_usage: "&cVerwendung: /promote <Spieler>"
+
+# RadioBroadcastCommand
+command_rb_usage: "&cVerwendung: /rb <Nachricht>"
+
+# UnjailCommand
+command_unjail_usage: "&cVerwendung: /unjail <Spieler>"
+unjail_not_jailed: "&cDieser Spieler ist nicht inhaftiert."
+
+# ExamManager
+exam_sts_header: "&e&l=== STS (SCHULTER AN SCHULTER) ==="
+exam_sts_message: "&c%officer% befahl STS! Sofort aufstellen!"
+exam_start_broadcast: "&e[Prüfung] &f%instructor% &estartete &b%type% &ePrüfung für &f%target%&e."
+exam_pass_broadcast: "&a[BESTANDEN] &f%target% &ahat die Prüfung bestanden!"
+exam_promotion_congrats: "&aHerzlichen Glückwunsch zur Beförderung: %rank%"
+exam_fail_broadcast: "&c[DURCHGEFALLEN] &f%target% &cist durchgefallen."
+exam_already_in_session: "&cDieser Spieler ist bereits in einer Prüfung."
+exam_quiz_start_header: "&a=== Schriftliche Prüfung Start ==="
+exam_quiz_instruction: "&eBitte antworte im Chat."
+exam_quiz_question_format: "&6F%index%: &f%question%"
+exam_quiz_finished: "&ePrüfung beendet!"
+exam_quiz_score: "&fPunkte: %score% / %total%"
+exam_quiz_pass_broadcast: "&a%player% hat die schriftliche Prüfung bestanden!"
+exam_quiz_fail_message: "&cDurchgefallen. Versuche es später erneut!"
+exam_quiz_cancelled: "&cPrüfung abgebrochen."
+exam_quiz_correct: "&aRichtig!"
+exam_quiz_incorrect: "&cFalsch... (Antwort: %answer%)"
+exam_demo_q1_text: "Was ist die korrekte Reihenfolge eines Saluts?"
+exam_demo_q1_correct: "Absolut"
+exam_demo_q1_valid: "Absolut,Ja"
+exam_demo_q2_text: "Ist unbefugtes Schießen erlaubt? (ja/nein)"
+exam_demo_q2_correct: "Nein"
+exam_demo_q2_valid: "Nein"
+exam_demo_q3_text: "Wer hat den höchsten Rang?"
+exam_demo_q3_correct: "Kommandant"
+exam_demo_q3_valid: "Kommandant"
+
+# JailManager
+jail_reason_offline: "Offline-Gefängnis"
+jail_reason_reconnect: "Wiederverbindung"
+jail_reason_relocated: "Verlegt (Inhaftiert)"
+
+# PTSManager
+pts_actionbar_requesting: "&e✋ PTS-Anfrage..."
+pts_actionbar_timeout: "&c⏱ PTS-Anfrage Zeitüberschreitung"
+pts_actionbar_expired: "&c⏱ Erlaubnis abgelaufen"
+pts_actionbar_remaining: "%color%🎤 PTS: %seconds%s"
+
+# WarningManager
+warn_punish_kick_reason: "&cGekickt wegen Erreichens von %limit% Verwarnungen."
+warn_punish_jail_reason: "Auto-Gefängnis wegen %count% Verwarnungen"
+
+# ChatListener
+chat_exam_blocked: "&c&l[PRÜFUNG]&r&7 Chat ist während der Prüfung deaktiviert."
+
+# CombatListener Weapons
+weapon_hand: "Hand"
+weapon_diamond_sword: "Diamantschwert"
+weapon_iron_sword: "Eisenschwert"
+weapon_golden_sword: "Goldschwert"
+weapon_stone_sword: "Steinschwert"
+weapon_wooden_sword: "Holzschwert"
+weapon_netherite_sword: "Netheritschwert"
+weapon_bow: "Bogen"
+weapon_crossbow: "Armbrust"
+weapon_trident: "Dreizack"
+weapon_diamond_axe: "Diamantaxt"
+weapon_iron_axe: "Eisenaxt"
+weapon_netherite_axe: "Netheritaxt"
+
+# IronDiscipline Main
+log_luckperms_not_found: "LuckPerms nicht gefunden! Plugin wird deaktiviert."
+log_startup_success: "&aIronDiscipline v%version% Aktiviert!"
+log_shutdown_complete: "IronDiscipline Deaktiviert"
+log_managers_initialized: "Manager Initialisiert"
+log_listeners_registered: "Listener Registriert"
+log_commands_registered: "Befehle Registriert"
+log_discord_disabled: "Discord-Integration deaktiviert (siehe config.yml)"
+log_reload_complete: "Konfiguration neu geladen"

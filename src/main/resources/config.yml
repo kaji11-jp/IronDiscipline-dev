@@ -1,0 +1,132 @@
+# ============================================
+#     IronDiscipline (鉄の規律) 設定ファイル
+# ============================================
+
+# 一般設定
+general:
+  # デバッグモード
+  debug: false
+  # 使用する言語 (locales/messages_LANGUAGE.yml が読み込まれます)
+  # 利用可能: ja_JP, en_US
+  locale: ja_JP
+
+# データベース設定
+database:
+  # タイプ: h2, sqlite, mysql
+  type: h2
+  # MySQLを使用する場合の設定
+  mysql:
+    host: localhost
+    port: 3306
+    database: irondiscipline
+    username: root
+    password: ""
+
+# 階級システム設定
+ranks:
+  # LuckPermsのメタデータキー名
+  meta_key: "military_rank"
+  # 階級定義 (下から上への順序)
+  list:
+    - id: PRIVATE
+      display: "&7[二等兵]"
+      weight: 10
+    - id: CORPORAL
+      display: "&7[一等兵]"
+      weight: 20
+    - id: SERGEANT
+      display: "&e[軍曹]"
+      weight: 30
+    - id: LIEUTENANT
+      display: "&6[少尉]"
+      weight: 40
+    - id: CAPTAIN
+      display: "&6[大尉]"
+      weight: 50
+    - id: MAJOR
+      display: "&c[少佐]"
+      weight: 60
+    - id: COLONEL
+      display: "&c[大佐]"
+      weight: 70
+    - id: COMMANDER
+      display: "&4&l[司令官]"
+      weight: 100
+
+# PTS (発言許可) システム設定
+pts:
+  # PTSが必要な最大階級重み (この重み以下はPTS必須)
+  require_below_weight: 25
+  # デフォルトの発言許可時間 (秒)
+  default_grant_duration: 60
+  # ダブルスニークでPTSリクエスト
+  sneak_request:
+    enabled: true
+    # ダブルスニーク判定時間 (ミリ秒)
+    double_sneak_threshold: 500
+
+# 無線システム設定
+radio:
+  # デフォルト周波数
+  default_frequency: "118.0"
+
+# 隔離システム設定
+jail:
+  # 隔離場所 (ingameで /setjail で設定)
+  location:
+    world: "world"
+    x: 0
+    y: 64
+    z: 0
+
+# 戦闘ログ設定
+killlog:
+  # ログの保存日数
+  retention_days: 30
+  # 詳細ログの有効化
+  detailed: true
+
+# 警告による自動処分
+warnings:
+  thresholds:
+    jail: 3
+    kick: 5
+
+# 昇進システム設定
+promotion:
+  # 時間経過による自動昇進
+  time_based:
+    enabled: false # デフォルトは無効 (選択可)
+    interval: 300   # チェック間隔 (秒) - 5分
+    check_afk: true # AFK時間を考慮するか (現時点ではプレースホルダー)
+    # 昇進ルール: 階級ID: 必要プレイ時間(分)
+    # 0は即時、または適用外
+    rules:
+      PRIVATE: 60      # 1時間
+      CORPORAL: 600    # 10時間
+      SERGEANT: 3000   # 50時間 (例)
+  
+  # 試験設定
+  exam:
+    quiz_timeout: 45 # クイズの回答制限時間 (秒)
+
+# Discord連携設定
+discord:
+  # Discord連携を有効化
+  enabled: true
+  # Bot Token (Discord Developer Portal で取得)
+  bot_token: ""
+  # 通知チャンネルID
+  notification_channel_id: ""
+  # サーバー(ギルド)ID
+  guild_id: ""
+  # 未認証ロールID (サーバー参加時に付与)
+  unverified_role_id: ""
+  # 認証済みロールID (連携完了時に付与)
+  verified_role_id: ""
+  # 通知を受け取るロールID
+  notification_role_id: ""
+  # コンソール・管理者権限を持つロールID
+  console_role_id: ""
+  # 階級別ロール設定 (階級ID: ロールID)
+  rank_roles: {}
