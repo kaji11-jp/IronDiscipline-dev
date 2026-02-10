@@ -232,7 +232,7 @@ public class DiscordManager extends ListenerAdapter {
     }
 
     private void handleStatus(SlashCommandInteractionEvent event) {
-        Bukkit.getScheduler().runTask(plugin, () -> {
+        plugin.getTaskScheduler().runGlobal(() -> {
             int online = Bukkit.getOnlinePlayers().size();
             int max = Bukkit.getMaxPlayers();
             int linked = plugin.getLinkManager().getLinkCount();
@@ -249,7 +249,7 @@ public class DiscordManager extends ListenerAdapter {
     }
 
     private void handlePlayers(SlashCommandInteractionEvent event) {
-        Bukkit.getScheduler().runTask(plugin, () -> {
+        plugin.getTaskScheduler().runGlobal(() -> {
             StringBuilder sb = new StringBuilder();
 
             for (Player p : Bukkit.getOnlinePlayers()) {
@@ -287,7 +287,7 @@ public class DiscordManager extends ListenerAdapter {
         // Defer reply to prevent timeout and indicate processing
         event.deferReply(true).queue();
 
-        Bukkit.getScheduler().runTask(plugin, () -> {
+        plugin.getTaskScheduler().runGlobal(() -> {
             String playtime = plugin.getPlaytimeManager().getFormattedPlaytime(minecraftId);
             String playerName = Bukkit.getOfflinePlayer(minecraftId).getName();
 
@@ -310,7 +310,7 @@ public class DiscordManager extends ListenerAdapter {
             return;
         }
 
-        Bukkit.getScheduler().runTask(plugin, () -> {
+        plugin.getTaskScheduler().runGlobal(() -> {
             Player player = Bukkit.getPlayer(minecraftId);
             Rank rank = player != null ? plugin.getRankManager().getRank(player) : Rank.PRIVATE;
             String div = plugin.getDivisionManager().getDivision(minecraftId);
@@ -344,7 +344,7 @@ public class DiscordManager extends ListenerAdapter {
             return;
         }
 
-        Bukkit.getScheduler().runTask(plugin, () -> {
+        plugin.getTaskScheduler().runGlobal(() -> {
             Player target = Bukkit.getPlayer(targetMinecraft);
             if (target == null || !target.isOnline()) {
                 event.reply("対象プレイヤーはオフラインです。").setEphemeral(true).queue();
@@ -353,7 +353,7 @@ public class DiscordManager extends ListenerAdapter {
 
             // 警告実行
             plugin.getWarningManager().addWarning(targetMinecraft, target.getName(), reason, null).thenAccept(count -> {
-                Bukkit.getScheduler().runTask(plugin, () -> {
+                plugin.getTaskScheduler().runGlobal(() -> {
                     target.sendMessage("§c§l【警告】§r§c " + reason + " §7(警告" + count + "回目)");
                 });
             });
@@ -369,7 +369,7 @@ public class DiscordManager extends ListenerAdapter {
 
         String message = msgOption.getAsString();
 
-        Bukkit.getScheduler().runTask(plugin, () -> {
+        plugin.getTaskScheduler().runGlobal(() -> {
             for (Player p : Bukkit.getOnlinePlayers()) {
                 p.sendTitle("§6§l【通達】", "§f" + message, 10, 100, 20);
                 p.sendMessage("§6§l【Discord通達】§r §f" + message);
@@ -1049,7 +1049,7 @@ public class DiscordManager extends ListenerAdapter {
             return;
         }
 
-        Bukkit.getScheduler().runTask(plugin, () -> {
+        plugin.getTaskScheduler().runGlobal(() -> {
             if (type.equals("kick")) {
                 Player target = Bukkit.getPlayer(targetUUID);
                 if (target != null) {

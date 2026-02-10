@@ -74,6 +74,20 @@ public class TaskScheduler {
     }
 
     /**
+     * エンティティに関連付けられた定期タスクを実行 (Folia対応)
+     */
+    public ScheduledTask runEntityTimer(Entity entity, Runnable runnable, long delayTicks, long periodTicks) {
+        return morePaperLib.scheduling().entitySpecificScheduler(entity).runAtFixedRate(runnable, null, delayTicks, periodTicks);
+    }
+
+    /**
+     * エンティティに関連付けられた定期タスクを実行 (Folia対応) - タスク自己参照可能
+     */
+    public void runEntityTimer(Entity entity, java.util.function.Consumer<ScheduledTask> task, long delayTicks, long periodTicks) {
+        morePaperLib.scheduling().entitySpecificScheduler(entity).runAtFixedRate(task, null, delayTicks, periodTicks);
+    }
+
+    /**
      * 特定の場所でタスクを実行 (Folia対応)
      */
     public ScheduledTask runRegion(Location location, Runnable runnable) {

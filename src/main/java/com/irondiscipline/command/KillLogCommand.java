@@ -63,7 +63,7 @@ public class KillLogCommand implements CommandExecutor, TabCompleter {
                 sender.sendMessage(plugin.getConfigManager().getMessage("killlog_searching", "%player%", targetName));
                 // 全ログから名前でフィルタ
                 plugin.getStorageManager().getAllKillLogsAsync(100).thenAccept(logs -> {
-                    Bukkit.getScheduler().runTask(plugin, () -> {
+                    plugin.getTaskScheduler().runGlobal(() -> {
                         sender.sendMessage(plugin.getConfigManager().getMessage("killlog_header_player", "%player%", finalTargetName));
                         int count = 0;
                         for (KillLog log : logs) {
@@ -81,7 +81,7 @@ public class KillLogCommand implements CommandExecutor, TabCompleter {
                 });
             } else {
                 plugin.getStorageManager().getKillLogsAsync(targetId, displayLimit).thenAccept(logs -> {
-                    Bukkit.getScheduler().runTask(plugin, () -> {
+                    plugin.getTaskScheduler().runGlobal(() -> {
                         sender.sendMessage(plugin.getConfigManager().getMessage("killlog_header_player", "%player%", finalTargetName));
                         for (KillLog log : logs) {
                             sendLogEntry(sender, log);
@@ -95,7 +95,7 @@ public class KillLogCommand implements CommandExecutor, TabCompleter {
         } else {
             // 全ログ
             plugin.getStorageManager().getAllKillLogsAsync(displayLimit).thenAccept(logs -> {
-                Bukkit.getScheduler().runTask(plugin, () -> {
+                plugin.getTaskScheduler().runGlobal(() -> {
                     sender.sendMessage(plugin.getConfigManager().getMessage("killlog_header_latest"));
                     for (KillLog log : logs) {
                         sendLogEntry(sender, log);

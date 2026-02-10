@@ -150,7 +150,7 @@ public class DivisionManager {
      * データを保存
      */
     private void saveData() {
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        plugin.getTaskScheduler().runAsync(() -> {
             try {
                 DivisionData data = new DivisionData();
                 data.divisions = new ArrayList<>(divisions);

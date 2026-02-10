@@ -220,7 +220,7 @@ public class ExamManager implements Listener {
             session.currentIndex++;
 
             // 次の問題へ（少し遅延させると親切だが、今回は即時）
-            Bukkit.getScheduler().runTask(plugin, () -> askNextQuestion(player, session));
+            plugin.getTaskScheduler().runEntity(player, () -> askNextQuestion(player, session));
         }
     }
 

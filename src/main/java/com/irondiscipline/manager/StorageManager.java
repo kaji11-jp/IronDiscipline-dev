@@ -666,7 +666,7 @@ public class StorageManager {
         int days = plugin.getConfigManager().getKillLogRetentionDays();
         long cutoff = System.currentTimeMillis() - (days * 24L * 60 * 60 * 1000);
 
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        plugin.getTaskScheduler().runAsync(() -> {
             try {
                 String sql = "DELETE FROM kill_logs WHERE timestamp < ?";
                 try (PreparedStatement ps = connection.prepareStatement(sql)) {

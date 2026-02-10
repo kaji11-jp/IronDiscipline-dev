@@ -154,7 +154,7 @@ public class PlaytimeManager implements Listener {
     }
 
     private void saveData() {
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, this::saveDataSync);
+        plugin.getTaskScheduler().runAsync(this::saveDataSync);
     }
 
     private void saveDataSync() {

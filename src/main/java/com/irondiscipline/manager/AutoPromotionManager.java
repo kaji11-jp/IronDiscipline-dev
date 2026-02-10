@@ -5,7 +5,7 @@ import com.irondiscipline.model.Rank;
 import org.bukkit.Bukkit;
 import org.bukkit.Statistic;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitTask;
+
 
 /**
  * 自動昇進マネージャー

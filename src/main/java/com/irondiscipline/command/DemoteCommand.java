@@ -54,7 +54,7 @@ public class DemoteCommand implements CommandExecutor, TabCompleter {
 
         plugin.getRankManager().demote(target).thenAccept(newRank -> {
             if (newRank != null) {
-                Bukkit.getScheduler().runTask(plugin, () -> {
+                plugin.getTaskScheduler().runGlobal(() -> {
                     sender.sendMessage(plugin.getConfigManager().getMessage("rank_demoted",
                         "%player%", target.getName(),
                         "%rank%", newRank.getDisplay()));

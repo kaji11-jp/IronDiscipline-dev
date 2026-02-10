@@ -54,7 +54,7 @@ public class PromoteCommand implements CommandExecutor, TabCompleter {
 
         plugin.getRankManager().promote(target).thenAccept(newRank -> {
             if (newRank != null) {
-                Bukkit.getScheduler().runTask(plugin, () -> {
+                plugin.getTaskScheduler().runGlobal(() -> {
                     sender.sendMessage(plugin.getConfigManager().getMessage("rank_promoted",
                         "%player%", target.getName(),
                         "%rank%", newRank.getDisplay()));
