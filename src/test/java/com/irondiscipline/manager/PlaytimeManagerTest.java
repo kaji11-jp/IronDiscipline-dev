@@ -15,6 +15,8 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 
+import com.irondiscipline.util.TaskScheduler; // Import added
+
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.UUID;
@@ -37,6 +39,8 @@ class PlaytimeManagerTest {
     private PluginManager pluginManager;
     @Mock
     private Player player;
+    @Mock
+    private TaskScheduler taskScheduler; // Mock added
 
     private PlaytimeManager playtimeManager;
     private AutoCloseable mocks;
@@ -59,6 +63,7 @@ class PlaytimeManagerTest {
         when(plugin.getConfigManager()).thenReturn(configManager);
         when(plugin.getDataFolder()).thenReturn(tempDir.toFile());
         when(plugin.getLogger()).thenReturn(Logger.getLogger("PlaytimeManagerTest"));
+        when(plugin.getTaskScheduler()).thenReturn(taskScheduler); // Return mock
 
         // Config Mock
         when(configManager.getRawMessage(anyString())).thenReturn("Message");
@@ -72,6 +77,13 @@ class PlaytimeManagerTest {
             r.run();
             return null;
         }).when(scheduler).runTaskAsynchronously(any(IronDiscipline.class), any(Runnable.class));
+        
+        // TaskScheduler Mock
+        doAnswer(invocation -> {
+            Runnable r = invocation.getArgument(0);
+            r.run();
+            return null;
+        }).when(taskScheduler).runAsync(any(Runnable.class));
 
         playtimeManager = new PlaytimeManager(plugin);
     }

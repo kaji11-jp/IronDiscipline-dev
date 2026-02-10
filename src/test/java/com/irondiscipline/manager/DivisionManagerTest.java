@@ -11,6 +11,8 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 
+import com.irondiscipline.util.TaskScheduler;
+
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Set;
@@ -27,6 +29,8 @@ class DivisionManagerTest {
     private IronDiscipline plugin;
     @Mock
     private BukkitScheduler scheduler;
+    @Mock
+    private TaskScheduler taskScheduler;
     
     private DivisionManager divisionManager;
     private AutoCloseable mocks;
@@ -46,6 +50,7 @@ class DivisionManagerTest {
         // Plugin Mock
         when(plugin.getDataFolder()).thenReturn(tempDir.toFile());
         when(plugin.getLogger()).thenReturn(Logger.getLogger("DivisionManagerTest"));
+        when(plugin.getTaskScheduler()).thenReturn(taskScheduler);
 
         // Scheduler Mock (Run async tasks immediately on the same thread for testing)
         doAnswer(invocation -> {
@@ -53,6 +58,13 @@ class DivisionManagerTest {
             r.run();
             return null;
         }).when(scheduler).runTaskAsynchronously(any(IronDiscipline.class), any(Runnable.class));
+        
+        // TaskScheduler Mock
+        doAnswer(invocation -> {
+            Runnable r = invocation.getArgument(0);
+            r.run();
+            return null;
+        }).when(taskScheduler).runAsync(any(Runnable.class));
 
         // Initialize Manager
         divisionManager = new DivisionManager(plugin);
