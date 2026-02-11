@@ -69,16 +69,8 @@ view-distance=10
 simulation-distance=8
 EOF
 
-# 5. 基本プラグイン導入
-echo "[5/6] 基本プラグインを導入中..."
-# LuckPerms
-LUCKPERMS_URL="https://download.luckperms.net/1552/bukkit/loader/LuckPerms-Bukkit-5.4.145.jar"
-LUCKPERMS_HASH="4f0d42a3f78a1984a02523555fc9a78583ff2c2dee4cc9a218bd2e8323f47aca"
 
-curl -o plugins/LuckPerms.jar -L "$LUCKPERMS_URL"
-echo "$LUCKPERMS_HASH plugins/LuckPerms.jar" | sha256sum -c -
-
-# 6. サービス化 (systemd)
+# 5. サービス化 (systemd)
 echo "[6/6] 自動起動設定を作成中..."
 cat > /etc/systemd/system/minecraft.service << 'EOF'
 [Unit]
