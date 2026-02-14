@@ -24,10 +24,17 @@ public class AsyncPlayerPreLoginListener implements Listener {
 
         UUID playerId = event.getUniqueId();
 
-        // 階級データを事前ロード (同期的に待機)
-        plugin.getRankManager().loadPlayerCache(playerId);
+        try {
+            // 階級データを事前ロード (同期的に待機)
+            plugin.getRankManager().loadPlayerCache(playerId);
 
-        // 隔離データを事前ロード (同期的に待機)
-        plugin.getJailManager().loadJailStatusSync(playerId);
+            // 隔離データを事前ロード (同期的に待機)
+            plugin.getJailManager().loadJailStatusSync(playerId);
+        } catch (Exception e) {
+            plugin.getLogger().severe("Failed to load player data for " + event.getName() + " (" + playerId + "): " + e.getMessage());
+            e.printStackTrace();
+            event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER,
+                "Data loading error. Please try again later or contact an administrator.");
+        }
     }
 }

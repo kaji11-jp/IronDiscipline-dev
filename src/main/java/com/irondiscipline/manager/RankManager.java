@@ -38,11 +38,14 @@ public class RankManager {
             return rank;
         }
 
-        // キャッシュミス時のフォールバック (同期ロード)
+        // キャッシュミス時のフォールバック (非同期ロード)
         plugin.getLogger().warning("Rank cache miss for online player: " + player.getName());
-        loadPlayerCache(player.getUniqueId());
 
-        return rankCache.getOrDefault(player.getUniqueId(), Rank.PRIVATE);
+        // メインスレッドをブロックせず、非同期で読み込みを開始する
+        getRankAsync(player.getUniqueId());
+
+        // 読み込み完了まではデフォルト階級を返す
+        return Rank.PRIVATE;
     }
 
     /**

@@ -622,7 +622,7 @@ public class StorageManager {
             } catch (SQLException e) {
                 plugin.getLogger().log(Level.WARNING, plugin.getConfigManager().getRawMessage("log_save_failed_warn"), e);
             }
-        });
+        }, dbExecutor);
     }
 
     public CompletableFuture<List<Warning>> getWarningsAsync(UUID playerId) {
@@ -698,7 +698,7 @@ public class StorageManager {
         int days = plugin.getConfigManager().getKillLogRetentionDays();
         long cutoff = System.currentTimeMillis() - (days * 24L * 60 * 60 * 1000);
 
-        plugin.getTaskScheduler().runAsync(() -> {
+        CompletableFuture.runAsync(() -> {
             try {
                 String sql = "DELETE FROM kill_logs WHERE timestamp < ?";
                 try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -711,7 +711,7 @@ public class StorageManager {
             } catch (SQLException e) {
                 plugin.getLogger().log(Level.WARNING, plugin.getConfigManager().getRawMessage("log_cleanup_failed"), e);
             }
-        });
+        }, dbExecutor);
     }
 
     /**

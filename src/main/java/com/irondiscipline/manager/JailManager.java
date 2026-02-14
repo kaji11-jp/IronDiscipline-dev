@@ -254,8 +254,10 @@ public class JailManager {
         }
         player.setGameMode(GameMode.ADVENTURE);
 
-        // アイテム使用防止
+        // アイテム使用防止 & レースコンディション対策 (即時クリア)
         player.closeInventory();
+        player.getInventory().clear();
+        player.getInventory().setArmorContents(new ItemStack[4]);
 
         // 非同期処理
         plugin.getStorageManager().getJailRecordAsync(playerId).thenAccept(record -> {
@@ -263,10 +265,15 @@ public class JailManager {
                  if (!player.isOnline()) return;
 
                  if (record == null) {
-                     // 不整合時の解放
+                     // 不整合時の解放 (バックアップ変数から復元)
                      plugin.getLogger().warning("Jail record missing for " + player.getName() + " but flagged jailed. Releasing.");
                      knownJailedIds.remove(playerId);
                      jailedPlayers.remove(playerId);
+
+                     // インベントリ復元
+                     player.getInventory().setContents(initialContents);
+                     player.getInventory().setArmorContents(initialArmor);
+
                      player.teleport(initialLocation);
                      player.setGameMode(GameMode.SURVIVAL);
                      return;
@@ -274,7 +281,7 @@ public class JailManager {
 
                  // バックアップがない場合（オフライン処罰、または初回Jail Join）
                  if (record.getInventoryBackup() == null) {
-                     // バックアップ作成
+                     // バックアップ作成 (DBへ保存)
                      String newInvBackup = InventoryUtil.toBase64(initialContents);
                      String newArmorBackup = InventoryUtil.toBase64(initialArmor);
                      String locString = serializeLocation(initialLocation);
@@ -289,8 +296,7 @@ public class JailManager {
                      ).thenAccept(success -> {
                          plugin.getTaskScheduler().runEntity(player, () -> {
                              if (success) {
-                                 player.getInventory().clear();
-                                 player.getInventory().setArmorContents(new ItemStack[4]);
+                                 // インベントリは既にクリア済み
                                  updateJailDataCache(record, locString);
                              } else {
                                  player.kickPlayer("Critical Error: Failed to save inventory backup.");
@@ -298,9 +304,7 @@ public class JailManager {
                          });
                      });
                  } else {
-                     // バックアップがある場合 -> インベントリクリア
-                     player.getInventory().clear();
-                     player.getInventory().setArmorContents(new ItemStack[4]);
+                     // バックアップがある場合 -> 既にクリア済みなのでキャッシュ更新のみ
                      updateJailDataCache(record, record.getOriginalLocation());
                  }
 
@@ -313,12 +317,11 @@ public class JailManager {
     }
 
     private void updateJailDataCache(JailRecord record, String location) {
-         if (!jailedPlayers.containsKey(record.getPlayerId())) {
-             jailedPlayers.put(record.getPlayerId(), new JailData(
-                 record.getPlayerId(), record.getPlayerName(), record.getReason(),
-                 record.getJailedAt(), record.getJailedBy(), location
-             ));
-         }
+         // 上書き更新して、オフライン処罰時などのLocation未設定状態を解消する
+         jailedPlayers.put(record.getPlayerId(), new JailData(
+             record.getPlayerId(), record.getPlayerName(), record.getReason(),
+             record.getJailedAt(), record.getJailedBy(), location
+         ));
     }
 
     /**

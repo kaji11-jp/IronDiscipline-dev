@@ -112,6 +112,9 @@ class RankManagerTest {
         when(player.getUniqueId()).thenReturn(uuid);
         when(rankStorage.getRank(uuid)).thenReturn(CompletableFuture.completedFuture(Rank.MAJOR));
 
+        // 事前にキャッシュロードが必要 (getRankはキャッシュミス時にPRIVATEを返し、非同期ロードをキックする仕様になったため)
+        rankManager.loadPlayerCache(uuid);
+
         Rank rank = rankManager.getRank(player);
         assertEquals(Rank.MAJOR, rank);
     }
