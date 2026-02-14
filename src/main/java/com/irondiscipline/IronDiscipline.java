@@ -2,6 +2,8 @@ package com.irondiscipline;
 
 import com.irondiscipline.command.*;
 import com.irondiscipline.listener.*;
+import com.irondiscipline.listener.AsyncPlayerPreLoginListener;
+import com.irondiscipline.listener.JailListener;
 import com.irondiscipline.manager.*;
 import com.irondiscipline.util.RankUtil;
 import org.bukkit.Bukkit;
@@ -202,6 +204,8 @@ public class IronDiscipline extends JavaPlugin {
     }
 
     private void registerListeners() {
+        Bukkit.getPluginManager().registerEvents(new AsyncPlayerPreLoginListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new JailListener(this), this);
         Bukkit.getPluginManager().registerEvents(new ChatListener(this), this);
         Bukkit.getPluginManager().registerEvents(new CombatListener(this), this);
         Bukkit.getPluginManager().registerEvents(new JoinQuitListener(this), this);

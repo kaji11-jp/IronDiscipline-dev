@@ -99,8 +99,9 @@ class RankManagerTest {
     void testGetRank_DefaultPrivate() {
         UUID uuid = UUID.randomUUID();
         when(player.getUniqueId()).thenReturn(uuid);
-        when(rankStorage.getRankCached(uuid)).thenReturn(Rank.PRIVATE);
+        when(rankStorage.getRank(uuid)).thenReturn(CompletableFuture.completedFuture(Rank.PRIVATE));
 
+        // キャッシュにないのでロードが走る
         Rank rank = rankManager.getRank(player);
         assertEquals(Rank.PRIVATE, rank, "デフォルト階級はPRIVATEであるべき");
     }
@@ -109,7 +110,7 @@ class RankManagerTest {
     void testGetRank_Specific() {
         UUID uuid = UUID.randomUUID();
         when(player.getUniqueId()).thenReturn(uuid);
-        when(rankStorage.getRankCached(uuid)).thenReturn(Rank.MAJOR);
+        when(rankStorage.getRank(uuid)).thenReturn(CompletableFuture.completedFuture(Rank.MAJOR));
 
         Rank rank = rankManager.getRank(player);
         assertEquals(Rank.MAJOR, rank);
@@ -123,8 +124,10 @@ class RankManagerTest {
         when(player.isOnline()).thenReturn(true);
         when(configManager.getMessage(anyString(), anyString(), anyString())).thenReturn("Message");
 
-        // PRIVATEから開始
-        when(rankStorage.getRankCached(uuid)).thenReturn(Rank.PRIVATE);
+        // PRIVATEから開始 (事前にキャッシュロード)
+        when(rankStorage.getRank(uuid)).thenReturn(CompletableFuture.completedFuture(Rank.PRIVATE));
+        rankManager.loadPlayerCache(uuid);
+
         when(rankStorage.setRank(eq(uuid), anyString(), eq(Rank.PRIVATE_FIRST_CLASS)))
                 .thenReturn(CompletableFuture.completedFuture(true));
 
@@ -146,7 +149,9 @@ class RankManagerTest {
         when(configManager.getMessage(anyString(), anyString(), anyString())).thenReturn("Message");
 
         // CORPORALから開始
-        when(rankStorage.getRankCached(uuid)).thenReturn(Rank.CORPORAL);
+        when(rankStorage.getRank(uuid)).thenReturn(CompletableFuture.completedFuture(Rank.CORPORAL));
+        rankManager.loadPlayerCache(uuid);
+
         when(rankStorage.setRank(eq(uuid), anyString(), eq(Rank.PRIVATE_FIRST_CLASS)))
                 .thenReturn(CompletableFuture.completedFuture(true));
 
@@ -161,7 +166,8 @@ class RankManagerTest {
         UUID uuid = UUID.randomUUID();
         when(player.getUniqueId()).thenReturn(uuid);
         // COMMANDERは最高階級
-        when(rankStorage.getRankCached(uuid)).thenReturn(Rank.COMMANDER);
+        when(rankStorage.getRank(uuid)).thenReturn(CompletableFuture.completedFuture(Rank.COMMANDER));
+        rankManager.loadPlayerCache(uuid);
 
         Rank newRank = rankManager.promote(player).join();
 
@@ -174,7 +180,8 @@ class RankManagerTest {
         UUID uuid = UUID.randomUUID();
         when(player.getUniqueId()).thenReturn(uuid);
         // PRIVATEは最低階級
-        when(rankStorage.getRankCached(uuid)).thenReturn(Rank.PRIVATE);
+        when(rankStorage.getRank(uuid)).thenReturn(CompletableFuture.completedFuture(Rank.PRIVATE));
+        rankManager.loadPlayerCache(uuid);
 
         Rank newRank = rankManager.demote(player).join();
 

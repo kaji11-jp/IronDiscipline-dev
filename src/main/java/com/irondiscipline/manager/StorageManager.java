@@ -1,6 +1,7 @@
 package com.irondiscipline.manager;
 
 import com.irondiscipline.IronDiscipline;
+import com.irondiscipline.model.JailRecord;
 import com.irondiscipline.model.KillLog;
 import com.irondiscipline.manager.WarningManager.Warning;
 import org.bukkit.Bukkit;
@@ -33,7 +34,7 @@ public class StorageManager {
     private final Map<UUID, String> locationCache = new ConcurrentHashMap<>();
 
     // Executor for DB operations to avoid blocking common ForkJoinPool
-    private final ExecutorService dbExecutor = Executors.newCachedThreadPool();
+    private final ExecutorService dbExecutor = Executors.newSingleThreadExecutor();
     // Track removal times to prevent stale cache population
     private final Map<UUID, Long> lastRemoveTime = new ConcurrentHashMap<>();
 
@@ -546,6 +547,37 @@ public class StorageManager {
                 plugin.getLogger().log(Level.WARNING, plugin.getConfigManager().getRawMessage("log_check_failed_jail"), e);
             }
             return false;
+        }, dbExecutor);
+    }
+
+    /**
+     * 隔離レコード全体を取得 (非同期)
+     */
+    public CompletableFuture<JailRecord> getJailRecordAsync(UUID playerId) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                String sql = "SELECT * FROM jailed_players WHERE player_id = ?";
+                try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                    ps.setString(1, playerId.toString());
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next()) {
+                            return new JailRecord(
+                                    playerId,
+                                    rs.getString("player_name"),
+                                    rs.getString("reason"),
+                                    rs.getLong("jailed_at"),
+                                    rs.getString("jailed_by") != null ? UUID.fromString(rs.getString("jailed_by")) : null,
+                                    rs.getString("original_location"),
+                                    rs.getString("inventory_backup"),
+                                    rs.getString("armor_backup")
+                            );
+                        }
+                    }
+                }
+            } catch (SQLException e) {
+                plugin.getLogger().log(Level.WARNING, "Failed to load jail record", e);
+            }
+            return null;
         }, dbExecutor);
     }
 

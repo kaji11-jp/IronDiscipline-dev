@@ -32,8 +32,23 @@ public class RankManager {
      * プレイヤーの現在階級を取得（キャッシュ優先・同期）
      */
     public Rank getRank(Player player) {
-        return rankCache.computeIfAbsent(player.getUniqueId(),
-                uuid -> rankStorage.getRankCached(uuid));
+        // キャッシュにあればそれを返す
+        Rank rank = rankCache.get(player.getUniqueId());
+        if (rank != null) {
+            return rank;
+        }
+
+        // キャッシュにない場合 (通常はあり得ないが、Reload直後など)
+        // ここで同期ロードするとメインスレッドブロックのリスクがあるが、
+        // 階級なしで進むよりはマシ。
+        // ただし頻繁に呼ばれるメソッドなので、ログを出してデフォルトを返すか、
+        // あるいは `rankStorage.getRank` を同期呼び出しするか。
+        // ここではデフォルトを返しつつ非同期ロードをキックする戦略をとる。
+
+        plugin.getLogger().warning("Rank cache miss for online player: " + player.getName());
+        loadPlayerCache(player.getUniqueId()); // 同期ロード (PreLoginと同じ)
+
+        return rankCache.getOrDefault(player.getUniqueId(), Rank.PRIVATE);
     }
 
     /**
@@ -135,14 +150,14 @@ public class RankManager {
      */
     public void invalidateCache(UUID playerId) {
         rankCache.remove(playerId);
-        rankStorage.invalidateCache(playerId);
+        // Storageのキャッシュ無効化は不要 (キャッシュ削除済み)
 
         // オンラインならTab更新
         Player player = Bukkit.getPlayer(playerId);
         if (player != null && player.isOnline()) {
             plugin.getTaskScheduler().runEntity(player, () -> {
-                rankStorage.getRank(playerId).thenAccept(rank -> {
-                    rankCache.put(playerId, rank);
+                // 再ロード
+                getRankAsync(playerId).thenAccept(rank -> {
                     plugin.getTaskScheduler().runEntity(player, () -> {
                         TabNametagUtil.updatePlayer(player, rank);
                     });
@@ -152,14 +167,21 @@ public class RankManager {
     }
 
     /**
-     * プレイヤー参加時のキャッシュ読み込み
+     * プレイヤー参加時のキャッシュ読み込み (非同期・PreLogin推奨)
+     */
+    public void loadPlayerCache(UUID playerId) {
+        // 同期的に待機してキャッシュを確実にする (AsyncPlayerPreLoginEvent用)
+        getRankAsync(playerId).join();
+    }
+
+    /**
+     * プレイヤー参加時のキャッシュ読み込み (互換用)
      */
     public void loadPlayerCache(Player player) {
-        rankStorage.getRank(player.getUniqueId()).thenAccept(rank -> {
-            rankCache.put(player.getUniqueId(), rank);
-            plugin.getTaskScheduler().runEntity(player, () -> {
-                TabNametagUtil.updatePlayer(player, rank);
-            });
+        loadPlayerCache(player.getUniqueId());
+        // Tab/Nametag更新は別途JoinEventで行う
+        plugin.getTaskScheduler().runEntity(player, () -> {
+            TabNametagUtil.updatePlayer(player, getRank(player));
         });
     }
 
@@ -168,6 +190,5 @@ public class RankManager {
      */
     public void unloadPlayerCache(UUID playerId) {
         rankCache.remove(playerId);
-        rankStorage.unloadCache(playerId);
     }
 }

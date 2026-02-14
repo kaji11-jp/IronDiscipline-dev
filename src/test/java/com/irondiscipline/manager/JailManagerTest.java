@@ -126,8 +126,7 @@ class JailManagerTest {
         assertTrue(jailManager.isJailed(player));
 
         // Mock DB calls for unjail
-        when(storageManager.getInventoryBackupAsync(any())).thenReturn(CompletableFuture.completedFuture(null));
-        when(storageManager.getArmorBackupAsync(any())).thenReturn(CompletableFuture.completedFuture(null));
+        when(storageManager.getJailRecordAsync(any())).thenReturn(CompletableFuture.completedFuture(null));
         when(storageManager.removeJailedPlayerAsync(any())).thenReturn(CompletableFuture.completedFuture(null));
 
         boolean result = jailManager.unjail(player);

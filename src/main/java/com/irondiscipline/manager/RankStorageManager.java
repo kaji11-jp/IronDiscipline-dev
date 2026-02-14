@@ -21,10 +21,7 @@ public class RankStorageManager {
 
     private final IronDiscipline plugin;
     private final Connection connection;
-    private final ExecutorService dbExecutor = Executors.newCachedThreadPool();
-
-    // インメモリキャッシュ（高速化）
-    private final Map<UUID, Rank> rankCache = new ConcurrentHashMap<>();
+    private final ExecutorService dbExecutor = Executors.newSingleThreadExecutor();
 
     public RankStorageManager(IronDiscipline plugin, Connection connection) {
         this.plugin = plugin;
@@ -53,21 +50,9 @@ public class RankStorageManager {
     }
 
     /**
-     * 階級をキャッシュから取得（同期・高速）
-     */
-    public Rank getRankCached(UUID playerId) {
-        return rankCache.getOrDefault(playerId, Rank.PRIVATE);
-    }
-
-    /**
      * 階級をDBから取得
      */
     public CompletableFuture<Rank> getRank(UUID playerId) {
-        // キャッシュにあればそれを返す
-        if (rankCache.containsKey(playerId)) {
-            return CompletableFuture.completedFuture(rankCache.get(playerId));
-        }
-
         return CompletableFuture.supplyAsync(() -> {
             try {
                 String sql = "SELECT rank_id FROM player_ranks WHERE player_id = ?";
@@ -75,9 +60,7 @@ public class RankStorageManager {
                     ps.setString(1, playerId.toString());
                     try (ResultSet rs = ps.executeQuery()) {
                         if (rs.next()) {
-                            Rank rank = Rank.fromId(rs.getString("rank_id"));
-                            rankCache.put(playerId, rank);
-                            return rank;
+                            return Rank.fromId(rs.getString("rank_id"));
                         }
                     }
                 }
@@ -85,7 +68,6 @@ public class RankStorageManager {
                 plugin.getLogger().log(Level.WARNING, "階級取得失敗: " + playerId, e);
             }
             // デフォルト階級
-            rankCache.put(playerId, Rank.PRIVATE);
             return Rank.PRIVATE;
         }, dbExecutor);
     }
@@ -120,9 +102,6 @@ public class RankStorageManager {
                     ps.setString(3, rank.getId());
                     ps.setLong(4, System.currentTimeMillis());
                     ps.executeUpdate();
-
-                    // キャッシュ更新
-                    rankCache.put(playerId, rank);
                     return true;
                 }
             } catch (SQLException e) {
@@ -156,27 +135,6 @@ public class RankStorageManager {
             }
             return ranks;
         }, dbExecutor);
-    }
-
-    /**
-     * プレイヤーのキャッシュをロード
-     */
-    public void loadCache(UUID playerId) {
-        getRank(playerId); // 非同期でキャッシュに読み込み
-    }
-
-    /**
-     * プレイヤーのキャッシュをクリア
-     */
-    public void unloadCache(UUID playerId) {
-        rankCache.remove(playerId);
-    }
-
-    /**
-     * キャッシュを無効化
-     */
-    public void invalidateCache(UUID playerId) {
-        rankCache.remove(playerId);
     }
 
     /**
