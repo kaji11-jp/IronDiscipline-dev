@@ -7,6 +7,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import com.irondiscipline.model.JailRecord;
 import com.irondiscipline.util.InventoryUtil;
 import java.util.Map;
 import java.util.Set;
@@ -164,29 +165,29 @@ public class JailManager {
         target.setGameMode(GameMode.SURVIVAL);
 
         // インベントリ復元 (DBから非同期取得)
-        plugin.getStorageManager().getInventoryBackupAsync(targetId).thenAccept(invData -> {
-            plugin.getStorageManager().getArmorBackupAsync(targetId).thenAccept(armorData -> {
-                plugin.getTaskScheduler().runEntity(target, () -> {
-                    if (invData != null) {
-                        ItemStack[] items = InventoryUtil.fromBase64(invData);
+        plugin.getStorageManager().getJailRecordAsync(targetId).thenAccept(record -> {
+            plugin.getTaskScheduler().runEntity(target, () -> {
+                if (record != null) {
+                    if (record.getInventoryBackup() != null) {
+                        ItemStack[] items = InventoryUtil.fromBase64(record.getInventoryBackup());
                         if (items != null) {
                             target.getInventory().setContents(items);
                         }
                     }
-
-                    if (armorData != null) {
-                        ItemStack[] armor = InventoryUtil.fromBase64(armorData);
+                    if (record.getArmorBackup() != null) {
+                        ItemStack[] armor = InventoryUtil.fromBase64(record.getArmorBackup());
                         if (armor != null) {
                             target.getInventory().setArmorContents(armor);
                         }
                     }
+                }
 
-                    // DB削除 (非同期)
-                    plugin.getStorageManager().removeJailedPlayerAsync(targetId).thenRun(() -> {
-                        plugin.getTaskScheduler().runEntity(target, () -> {
-                            // 通知 (DB削除完了後)
-                            target.sendMessage(plugin.getConfigManager().getMessage("jail_you_released"));
-                        });
+                // DB削除 (非同期)
+                // 注意: Restoreが完了してからDeleteする
+                plugin.getStorageManager().removeJailedPlayerAsync(targetId).thenRun(() -> {
+                    plugin.getTaskScheduler().runEntity(target, () -> {
+                        // 通知 (DB削除完了後)
+                        target.sendMessage(plugin.getConfigManager().getMessage("jail_you_released"));
                     });
                 });
             });
@@ -210,90 +211,117 @@ public class JailManager {
     }
 
     /**
+     * PreLogin時にDBから状態を同期
+     * AsyncPlayerPreLoginEventで呼び出されることを想定
+     */
+    public void loadJailStatusSync(UUID playerId) {
+        try {
+            boolean isJailed = plugin.getStorageManager().isJailedAsync(playerId).join();
+            if (isJailed) {
+                knownJailedIds.add(playerId);
+            } else {
+                knownJailedIds.remove(playerId);
+                jailedPlayers.remove(playerId);
+            }
+        } catch (Exception e) {
+            plugin.getLogger().warning("Jail status load failed for " + playerId);
+            e.printStackTrace();
+        }
+    }
+
+    /**
      * ログイン時の隔離チェックと復元
      */
     public void onPlayerJoin(Player player) {
-        UUID playerId = player.getUniqueId();
-
-        // キャッシュがロード済みで、かつIDが含まれていなければ即リターン (高速化)
-        if (cacheLoaded && !knownJailedIds.contains(playerId)) {
-            return;
+        // PreLoginでロードされたキャッシュを使用して隔離処理を行う
+        if (knownJailedIds.contains(player.getUniqueId())) {
+            handleJailJoin(player);
         }
+    }
 
-        // キャッシュ未ロード、または隔離リストに含まれる場合は詳細チェック
+    private void handleJailJoin(Player player) {
+        UUID playerId = player.getUniqueId();
         
-        // 元のゲームモードを保存 (Race Condition対策で一時的にスペクテイターにするため)
-        GameMode originalMode = player.getGameMode();
+        // 元の場所とインベントリをキャプチャ (バックアップ作成用)
+        Location initialLocation = player.getLocation();
+        ItemStack[] initialContents = cloneItems(player.getInventory().getContents());
+        ItemStack[] initialArmor = cloneItems(player.getInventory().getArmorContents());
 
-        // 即座に行動制限 (まだDBチェックが終わっていない場合のため)
-        player.setGameMode(GameMode.SPECTATOR);
+        // 即座に隔離場所へ飛ばす
+        Location jailLocation = plugin.getConfigManager().getJailLocation();
+        if (jailLocation != null) {
+            player.teleport(jailLocation);
+        }
+        player.setGameMode(GameMode.ADVENTURE);
 
-        // 非同期チェック
-        plugin.getStorageManager().isJailedAsync(playerId).thenAccept(isJailed -> {
-            if (!isJailed) {
-                // 隔離中でなければ元のモードに復元
-                plugin.getTaskScheduler().runEntity(player, () -> {
-                    if (player.isOnline()) {
-                        player.setGameMode(originalMode);
-                    }
-                });
-                // キャッシュとの不整合があれば修正
-                knownJailedIds.remove(playerId);
-                return;
-            }
-            
-            // 隔離確定 -> キャッシュに追加
-            knownJailedIds.add(playerId);
+        // アイテム使用防止 & レースコンディション対策 (即時クリア)
+        player.closeInventory();
+        player.getInventory().clear();
+        player.getInventory().setArmorContents(new ItemStack[4]);
 
-            // DBからバックアップ状況を確認
-            plugin.getStorageManager().getInventoryBackupAsync(playerId).thenAccept(invBackup -> {
-                // 元座標も非同期で取得
-                plugin.getStorageManager().getOriginalLocationAsync(playerId).thenAccept(savedOriginalLoc -> {
-                    plugin.getTaskScheduler().runEntity(player, () -> {
-                        if (!player.isOnline())
-                            return;
+        // 非同期処理
+        plugin.getStorageManager().getJailRecordAsync(playerId).thenAccept(record -> {
+             plugin.getTaskScheduler().runEntity(player, () -> {
+                 if (!player.isOnline()) return;
 
-                        String finalOriginalLoc = savedOriginalLoc;
+                 if (record == null) {
+                     // 不整合時の解放 (バックアップ変数から復元)
+                     plugin.getLogger().warning("Jail record missing for " + player.getName() + " but flagged jailed. Releasing.");
+                     knownJailedIds.remove(playerId);
+                     jailedPlayers.remove(playerId);
 
-                        // バックアップがない場合（オフライン処罰時）は今すぐバックアップ
-                        if (invBackup == null) {
-                            // インベントリバックアップ
-                            String newInvBackup = InventoryUtil.toBase64(player.getInventory().getContents());
-                            String newArmorBackup = InventoryUtil.toBase64(player.getInventory().getArmorContents());
+                     // インベントリ復元
+                     player.getInventory().setContents(initialContents);
+                     player.getInventory().setArmorContents(initialArmor);
 
-                            // 元の場所保存
-                            String locString = serializeLocation(player.getLocation());
-                            finalOriginalLoc = locString;
+                     player.teleport(initialLocation);
+                     player.setGameMode(GameMode.SURVIVAL);
+                     return;
+                 }
 
-                            // DB更新
-                            plugin.getStorageManager().saveJailedPlayerAsync(playerId, player.getName(), plugin.getConfigManager().getRawMessage("jail_reason_offline"),
-                                    null, locString, newInvBackup, newArmorBackup);
+                 // バックアップがない場合（オフライン処罰、または初回Jail Join）
+                 if (record.getInventoryBackup() == null) {
+                     // バックアップ作成 (DBへ保存)
+                     String newInvBackup = InventoryUtil.toBase64(initialContents);
+                     String newArmorBackup = InventoryUtil.toBase64(initialArmor);
+                     String locString = serializeLocation(initialLocation);
 
-                            // インベントリクリア
-                            player.getInventory().clear();
-                            player.getInventory().setArmorContents(new ItemStack[4]);
-                        }
+                     // 既存情報を維持しつつ更新
+                     plugin.getStorageManager().saveJailedPlayerAsync(
+                         playerId, player.getName(),
+                         record.getReason(),
+                         record.getJailedBy(),
+                         locString,
+                         newInvBackup, newArmorBackup
+                     ).thenAccept(success -> {
+                         plugin.getTaskScheduler().runEntity(player, () -> {
+                             if (success) {
+                                 // インベントリは既にクリア済み
+                                 updateJailDataCache(record, locString);
+                             } else {
+                                 player.kickPlayer("Critical Error: Failed to save inventory backup.");
+                             }
+                         });
+                     });
+                 } else {
+                     // バックアップがある場合 -> 既にクリア済みなのでキャッシュ更新のみ
+                     updateJailDataCache(record, record.getOriginalLocation());
+                 }
 
-                        // DBに隔離記録がある場合
-                        // キャッシュ復元
-                        if (!jailedPlayers.containsKey(playerId)) {
-                            jailedPlayers.put(playerId,
-                                    new JailData(playerId, player.getName(), plugin.getConfigManager().getRawMessage("jail_reason_reconnect"), System.currentTimeMillis(), null,
-                                            finalOriginalLoc));
-                        }
-
-                        // 隔離場所にテレポート
-                        Location jailLocation = plugin.getConfigManager().getJailLocation();
-                        if (jailLocation != null) {
-                            player.teleport(jailLocation);
-                            player.setGameMode(GameMode.ADVENTURE);
-                            player.sendMessage(plugin.getConfigManager().getMessage("jail_you_jailed",
-                                    "%reason%", plugin.getConfigManager().getRawMessage("jail_reason_relocated")));
-                        }
-                    });
-                });
-            });
+                 // 通知
+                 String reason = record.getReason() != null ? record.getReason() : "Unknown";
+                 player.sendMessage(plugin.getConfigManager().getMessage("jail_you_jailed",
+                        "%reason%", reason));
+             });
         });
+    }
+
+    private void updateJailDataCache(JailRecord record, String location) {
+         // 上書き更新して、オフライン処罰時などのLocation未設定状態を解消する
+         jailedPlayers.put(record.getPlayerId(), new JailData(
+             record.getPlayerId(), record.getPlayerName(), record.getReason(),
+             record.getJailedAt(), record.getJailedBy(), location
+         ));
     }
 
     /**
@@ -320,21 +348,6 @@ public class JailManager {
             knownJailedIds.addAll(ids);
             cacheLoaded = true;
             plugin.getLogger().info("隔離プレイヤーリストをロードしました: " + ids.size() + "件");
-            
-            // ロード完了前に参加していたプレイヤーを再チェック
-            plugin.getTaskScheduler().runGlobal(() -> {
-                for (Player p : Bukkit.getOnlinePlayers()) {
-                    if (knownJailedIds.contains(p.getUniqueId())) {
-                         // 既に処理済みかチェックはonPlayerJoin内で行われるが、
-                         // GameModeがSPECTATORのまま放置されている可能性を防ぐため再呼び出しは慎重に。
-                         // ここでは「キャッシュに含まれているのに隔離処理されていない」ケースを救済したいが
-                         // 二重テレポート等のリスクもあるため、ログ出力にとどめるか、
-                         // 安全な再チェックロジックが必要。
-                         // 今回はシンプルに、onPlayerJoinは参加時イベントで確実に呼ばれているので
-                         // ここでは何もしない（onPlayerJoinがcacheLoaded=falseの時はDB見に行くので安全）。
-                    }
-                }
-            });
         });
     }
 
