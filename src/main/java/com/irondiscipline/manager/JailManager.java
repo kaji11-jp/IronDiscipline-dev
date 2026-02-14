@@ -212,6 +212,7 @@ public class JailManager {
 
     /**
      * PreLogin時にDBから状態を同期
+     * AsyncPlayerPreLoginEventで呼び出されることを想定
      */
     public void loadJailStatusSync(UUID playerId) {
         try {
@@ -232,18 +233,9 @@ public class JailManager {
      * ログイン時の隔離チェックと復元
      */
     public void onPlayerJoin(Player player) {
-        UUID playerId = player.getUniqueId();
-
-        // キャッシュがロード済み（PreLoginで同期済み）ならそれを使用
-        // 未ロードの場合はここでの処理になるが、基本はPreLoginを通る
-        if (knownJailedIds.contains(playerId)) {
+        // PreLoginでロードされたキャッシュを使用して隔離処理を行う
+        if (knownJailedIds.contains(player.getUniqueId())) {
             handleJailJoin(player);
-        } else {
-            // もしPreLoginが失敗していた場合の保険として、非同期チェックを行うか？
-            // ただし視覚的グリッチを避けるため、ここではknownJailedIdsを信頼する。
-            // 万が一の整合性チェックは定期タスク等に任せるべきだが、
-            // 念のためDBチェックを入れるとグリッチが復活する。
-            // ここでは「PreLoginで同期済み」を前提とする。
         }
     }
 
@@ -353,21 +345,6 @@ public class JailManager {
             knownJailedIds.addAll(ids);
             cacheLoaded = true;
             plugin.getLogger().info("隔離プレイヤーリストをロードしました: " + ids.size() + "件");
-            
-            // ロード完了前に参加していたプレイヤーを再チェック
-            plugin.getTaskScheduler().runGlobal(() -> {
-                for (Player p : Bukkit.getOnlinePlayers()) {
-                    if (knownJailedIds.contains(p.getUniqueId())) {
-                         // 既に処理済みかチェックはonPlayerJoin内で行われるが、
-                         // GameModeがSPECTATORのまま放置されている可能性を防ぐため再呼び出しは慎重に。
-                         // ここでは「キャッシュに含まれているのに隔離処理されていない」ケースを救済したいが
-                         // 二重テレポート等のリスクもあるため、ログ出力にとどめるか、
-                         // 安全な再チェックロジックが必要。
-                         // 今回はシンプルに、onPlayerJoinは参加時イベントで確実に呼ばれているので
-                         // ここでは何もしない（onPlayerJoinがcacheLoaded=falseの時はDB見に行くので安全）。
-                    }
-                }
-            });
         });
     }
 

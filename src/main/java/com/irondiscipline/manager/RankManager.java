@@ -38,15 +38,9 @@ public class RankManager {
             return rank;
         }
 
-        // キャッシュにない場合 (通常はあり得ないが、Reload直後など)
-        // ここで同期ロードするとメインスレッドブロックのリスクがあるが、
-        // 階級なしで進むよりはマシ。
-        // ただし頻繁に呼ばれるメソッドなので、ログを出してデフォルトを返すか、
-        // あるいは `rankStorage.getRank` を同期呼び出しするか。
-        // ここではデフォルトを返しつつ非同期ロードをキックする戦略をとる。
-
+        // キャッシュミス時のフォールバック (同期ロード)
         plugin.getLogger().warning("Rank cache miss for online player: " + player.getName());
-        loadPlayerCache(player.getUniqueId()); // 同期ロード (PreLoginと同じ)
+        loadPlayerCache(player.getUniqueId());
 
         return rankCache.getOrDefault(player.getUniqueId(), Rank.PRIVATE);
     }
