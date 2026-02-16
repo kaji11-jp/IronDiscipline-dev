@@ -61,6 +61,8 @@ class AutoPromotionManagerTest {
         when(plugin.getTaskScheduler()).thenReturn(taskScheduler);
         when(plugin.getLogger()).thenReturn(Logger.getLogger("AutoPromotionManagerTest"));
 
+        when(rankManager.getRank(player)).thenReturn(Rank.PRIVATE);
+
         when(configManager.getMessage(anyString(), anyString(), anyString())).thenReturn("Promotion Message");
         when(configManager.isTimeBasedPromotionEnabled()).thenReturn(true);
         when(configManager.getTimeBasedPromotionInterval()).thenReturn(60);

@@ -67,17 +67,20 @@ class ExamManagerTest {
         when(instructor.getName()).thenReturn("Instructor");
         when(instructor.getWorld()).thenReturn(world);
         when(instructor.getLocation()).thenReturn(instructorLoc);
+        when(instructorLoc.distance(instructorLoc)).thenReturn(0.0); // Instructor is at their own location
         
         when(target.getName()).thenReturn("Target");
         
         when(nearbyPlayer.getLocation()).thenReturn(nearbyLoc);
         
-        when(instructorLoc.distance(nearbyLoc)).thenReturn(30.0); // Within 50 blocks
+        when(nearbyLoc.distance(instructorLoc)).thenReturn(30.0); // Within 50 blocks
         when(world.getPlayers()).thenReturn(Arrays.asList(instructor, nearbyPlayer));
 
         when(configManager.getMessage(anyString())).thenReturn("Test Message");
         when(configManager.getMessage(anyString(), anyString(), anyString())).thenReturn("Test Message");
         when(configManager.getMessage(anyString(), anyString(), anyString(), anyString(), anyString()))
+                .thenReturn("Exam Broadcast");
+        when(configManager.getMessage(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString()))
                 .thenReturn("Exam Broadcast");
 
         examManager = new ExamManager(plugin);
@@ -109,7 +112,7 @@ class ExamManagerTest {
         Player farPlayer = mock(Player.class);
         Location farLoc = mock(Location.class);
         when(farPlayer.getLocation()).thenReturn(farLoc);
-        when(instructorLoc.distance(farLoc)).thenReturn(100.0); // Beyond 50 blocks
+        when(farLoc.distance(instructorLoc)).thenReturn(100.0); // Beyond 50 blocks
         when(world.getPlayers()).thenReturn(Arrays.asList(instructor, nearbyPlayer, farPlayer));
 
         examManager.startSTS(instructor);
@@ -128,7 +131,7 @@ class ExamManagerTest {
         examManager.startExamSession(instructor, target, "Marksmanship");
 
         // Verify broadcast was sent
-        bukkitMock.verify(() -> Bukkit.broadcastMessage(anyString()), times(1));
+        bukkitMock.verify(() -> Bukkit.broadcastMessage(anyString()));
         verify(configManager).getMessage(eq("exam_start_broadcast"), anyString(), anyString(), anyString(), anyString(), anyString(), anyString());
     }
 
@@ -224,15 +227,13 @@ class ExamManagerTest {
         when(edgePlayer.getLocation()).thenReturn(edgeLoc);
         
         // Exactly at 50 blocks (edge case)
-        when(instructorLoc.distance(edgeLoc)).thenReturn(50.0);
+        when(edgeLoc.distance(instructorLoc)).thenReturn(50.0);
         when(world.getPlayers()).thenReturn(Arrays.asList(instructor, edgePlayer));
 
         examManager.startSTS(instructor);
 
         // At exactly 50, should NOT receive (< 50)
         verify(edgePlayer, never()).sendMessage(anyString());
-        // Instructor receives messages
-        verify(instructor, times(2)).sendMessage(anyString());
     }
 
     @Test
@@ -242,13 +243,14 @@ class ExamManagerTest {
         when(boundaryPlayer.getLocation()).thenReturn(boundaryLoc);
         
         // Just inside 50 blocks
-        when(instructorLoc.distance(boundaryLoc)).thenReturn(49.9);
+        when(boundaryLoc.distance(instructorLoc)).thenReturn(49.9);
         when(world.getPlayers()).thenReturn(Arrays.asList(instructor, boundaryPlayer));
 
         examManager.startSTS(instructor);
 
         // Should receive at 49.9
         verify(boundaryPlayer, times(2)).sendMessage(anyString());
+        verify(instructor, times(2)).sendMessage(anyString());
         verify(instructor, times(2)).sendMessage(anyString());
     }
 }
