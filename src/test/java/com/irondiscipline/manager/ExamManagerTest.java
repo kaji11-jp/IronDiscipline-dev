@@ -192,7 +192,7 @@ class ExamManagerTest {
         when(configManager.getMessage(eq("exam_fail_broadcast"), anyString(), anyString()))
                 .thenReturn("Exam failed");
 
-        examManager.failExam(target);
+        examManager.failExam(instructor, target);
 
         // Verify broadcast
         bukkitMock.verify(() -> Bukkit.broadcastMessage(anyString()), times(1));
