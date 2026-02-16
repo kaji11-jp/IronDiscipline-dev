@@ -14,20 +14,28 @@ Minecraftサーバー用 総合管理・規律維持プラグイン。
 | 階級保存先 | LuckPermsメタデータ | 独自DB (H2/MySQL) |
 | LuckPerms | 必須 | 不要（移行時のみオプション） |
 | パフォーマンス | API経由 | 直接DB+キャッシュ |
+| 並行処理 | 標準 | スレッドセーフな並行処理対応 |
+| Folia対応 | 非対応 | 完全対応 |
 
 ## 機能
 
 - **階級システム**: 階級による権限管理、config.ymlでの完全なカスタマイズが可能
+  - スレッドセーフな並行キャッシュ（`ConcurrentHashMap`使用）
+  - レースコンディション対策済み
 - **PTS (Permission to Speak)**: 下士官の発言許可システム
 - **Discord連携**: アカウント連携、ロール・ニックネーム同期
 - **警告・処分システム**: 警告蓄積と自動処分
+  - 二重隔離防止機能
+  - アイテムロス防止の即時インベントリバックアップ
+  - データ不整合の自動検出・修復
 - **試験システム**: GUIを使用した昇進試験
 - **データ移行**: `/irondev migrate` でLuckPermsからデータを簡単移行
+- **Folia対応**: MorePaperLibによる完全なFolia互換性
 
 ## 必要要件
 
 - Java 17+
-- Paper / Spigot / Folia 1.18+
+- Paper / Spigot / Folia 1.18+（Folia完全対応）
 - MySQL, SQLite または H2 Database (デフォルト)
 
 ## インストール
