@@ -150,4 +150,64 @@ class JailManagerTest {
         jailManager.preventEscape(player);
         verify(player).teleport(any(Location.class));
     }
+
+    @Test
+    void testJailOffline() {
+        UUID offlinePlayerId = UUID.randomUUID();
+        
+        jailManager.jailOffline(offlinePlayerId, "OfflinePlayer", "AdminName", "Test Reason");
+        
+        assertTrue(jailManager.isJailed(offlinePlayerId));
+        verify(storageManager).saveJailedPlayerAsync(eq(offlinePlayerId), eq("OfflinePlayer"), 
+                eq("AdminName"), eq("Test Reason"), any(), any(), any());
+    }
+
+    @Test
+    void testMultiplePlayersJailed() {
+        Player player2 = mock(Player.class);
+        UUID player2Id = UUID.randomUUID();
+        when(player2.getUniqueId()).thenReturn(player2Id);
+        when(player2.getName()).thenReturn("Player2");
+        when(player2.getLocation()).thenReturn(new Location(world, 50, 64, 50));
+        when(player2.getInventory()).thenReturn(mock(PlayerInventory.class));
+        when(player2.isOnline()).thenReturn(true);
+        
+        jailManager.jail(player, jailer, "Reason1");
+        jailManager.jail(player2, jailer, "Reason2");
+        
+        assertTrue(jailManager.isJailed(player));
+        assertTrue(jailManager.isJailed(player2));
+    }
+
+    @Test
+    void testUnjailNonJailedPlayer() {
+        // Unjailing a player who is not jailed should not crash
+        when(storageManager.getJailRecordAsync(any())).thenReturn(CompletableFuture.completedFuture(null));
+        when(storageManager.removeJailedPlayerAsync(any())).thenReturn(CompletableFuture.completedFuture(null));
+        
+        boolean result = jailManager.unjail(player);
+        
+        assertFalse(result); // Should return false for non-jailed player
+    }
+
+    @Test
+    void testIsJailedByUUID() {
+        jailManager.jailOffline(player.getUniqueId(), "TestPlayer", null, "Reason");
+        
+        assertTrue(jailManager.isJailed(player.getUniqueId()));
+    }
+
+    @Test
+    void testPreventEscapeNearJail() {
+        jailManager.jailOffline(player.getUniqueId(), "TestPlayer", null, "Reason");
+        
+        // Player is already near jail location
+        Location nearJail = new Location(world, 102, 64, 102); // Close to 100,64,100
+        when(player.getLocation()).thenReturn(nearJail);
+        
+        jailManager.preventEscape(player);
+        
+        // Should not teleport if already near jail
+        verify(player, never()).teleport(any(Location.class));
+    }
 }

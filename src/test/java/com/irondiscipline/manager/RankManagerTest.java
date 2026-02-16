@@ -191,4 +191,107 @@ class RankManagerTest {
         assertNull(newRank, "最低階級からは降格できないはず");
         verify(rankStorage, never()).setRank(any(), anyString(), any());
     }
+
+    @Test
+    void testSetRankDirectly() {
+        UUID uuid = UUID.randomUUID();
+        when(player.getUniqueId()).thenReturn(uuid);
+        when(player.getName()).thenReturn("TestPlayer");
+        when(player.isOnline()).thenReturn(true);
+        
+        when(rankStorage.setRank(eq(uuid), anyString(), eq(Rank.COLONEL)))
+                .thenReturn(CompletableFuture.completedFuture(true));
+
+        Rank result = rankManager.setRank(player, Rank.COLONEL).join();
+
+        assertEquals(Rank.COLONEL, result);
+        verify(rankStorage).setRank(eq(uuid), anyString(), eq(Rank.COLONEL));
+    }
+
+    @Test
+    void testMultiplePlayersIndependently() {
+        UUID uuid1 = UUID.randomUUID();
+        UUID uuid2 = UUID.randomUUID();
+        
+        Player player2 = mock(Player.class);
+        when(player.getUniqueId()).thenReturn(uuid1);
+        when(player2.getUniqueId()).thenReturn(uuid2);
+        
+        when(rankStorage.getRank(uuid1)).thenReturn(CompletableFuture.completedFuture(Rank.PRIVATE));
+        when(rankStorage.getRank(uuid2)).thenReturn(CompletableFuture.completedFuture(Rank.MAJOR));
+        
+        rankManager.loadPlayerCache(uuid1);
+        rankManager.loadPlayerCache(uuid2);
+        
+        assertEquals(Rank.PRIVATE, rankManager.getRank(player));
+        assertEquals(Rank.MAJOR, rankManager.getRank(player2));
+    }
+
+    @Test
+    void testPromoteThroughMultipleLevels() {
+        UUID uuid = UUID.randomUUID();
+        when(player.getUniqueId()).thenReturn(uuid);
+        when(player.getName()).thenReturn("TestPlayer");
+        when(player.isOnline()).thenReturn(true);
+        when(configManager.getMessage(anyString(), anyString(), anyString())).thenReturn("Message");
+        
+        // Start at PRIVATE
+        when(rankStorage.getRank(uuid)).thenReturn(CompletableFuture.completedFuture(Rank.PRIVATE));
+        rankManager.loadPlayerCache(uuid);
+        
+        // Promote to PRIVATE_FIRST_CLASS
+        when(rankStorage.setRank(eq(uuid), anyString(), eq(Rank.PRIVATE_FIRST_CLASS)))
+                .thenReturn(CompletableFuture.completedFuture(true));
+        Rank rank1 = rankManager.promote(player).join();
+        assertEquals(Rank.PRIVATE_FIRST_CLASS, rank1);
+        
+        // Promote to CORPORAL
+        when(rankStorage.setRank(eq(uuid), anyString(), eq(Rank.CORPORAL)))
+                .thenReturn(CompletableFuture.completedFuture(true));
+        Rank rank2 = rankManager.promote(player).join();
+        assertEquals(Rank.CORPORAL, rank2);
+    }
+
+    @Test
+    void testRequiresPTS_LowRanks() {
+        UUID uuid = UUID.randomUUID();
+        when(player.getUniqueId()).thenReturn(uuid);
+        
+        // CORPORAL requires PTS (weight 20 <= 25)
+        when(rankStorage.getRank(uuid)).thenReturn(CompletableFuture.completedFuture(Rank.CORPORAL));
+        rankManager.loadPlayerCache(uuid);
+        
+        assertTrue(rankManager.requiresPTS(player));
+    }
+
+    @Test
+    void testRequiresPTS_HighRanks() {
+        UUID uuid = UUID.randomUUID();
+        when(player.getUniqueId()).thenReturn(uuid);
+        
+        // SERGEANT does not require PTS (weight 30 > 25)
+        when(rankStorage.getRank(uuid)).thenReturn(CompletableFuture.completedFuture(Rank.SERGEANT));
+        rankManager.loadPlayerCache(uuid);
+        
+        assertFalse(rankManager.requiresPTS(player));
+    }
+
+    @Test
+    void testCacheInvalidation() {
+        UUID uuid = UUID.randomUUID();
+        when(player.getUniqueId()).thenReturn(uuid);
+        
+        // Load initial rank
+        when(rankStorage.getRank(uuid)).thenReturn(CompletableFuture.completedFuture(Rank.PRIVATE));
+        rankManager.loadPlayerCache(uuid);
+        assertEquals(Rank.PRIVATE, rankManager.getRank(player));
+        
+        // Clear cache
+        rankManager.clearCache(uuid);
+        
+        // Should reload from storage
+        when(rankStorage.getRank(uuid)).thenReturn(CompletableFuture.completedFuture(Rank.CAPTAIN));
+        rankManager.loadPlayerCache(uuid);
+        assertEquals(Rank.CAPTAIN, rankManager.getRank(player));
+    }
 }
