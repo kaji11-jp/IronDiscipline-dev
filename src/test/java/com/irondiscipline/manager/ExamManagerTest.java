@@ -62,6 +62,7 @@ class ExamManagerTest {
         when(plugin.getRankManager()).thenReturn(rankManager);
         
         bukkitMock.when(Bukkit::getPluginManager).thenReturn(pluginManager);
+        bukkitMock.when(() -> Bukkit.broadcastMessage(anyString())).then(invocation -> null);
 
         when(instructor.getName()).thenReturn("Instructor");
         when(instructor.getWorld()).thenReturn(world);
@@ -99,7 +100,7 @@ class ExamManagerTest {
         examManager.startSTS(instructor);
 
         // Verify message sent to nearby players
-        verify(nearbyPlayer, atLeast(1)).sendMessage(anyString());
+        verify(nearbyPlayer, times(2)).sendMessage(anyString());
         verify(nearbyPlayer).playSound(any(Location.class), eq(Sound.BLOCK_NOTE_BLOCK_PLING), anyFloat(), anyFloat());
     }
 
@@ -114,7 +115,7 @@ class ExamManagerTest {
         examManager.startSTS(instructor);
 
         // Nearby player should receive
-        verify(nearbyPlayer).sendMessage(anyString());
+        verify(nearbyPlayer, times(2)).sendMessage(anyString());
         
         // Far player should not receive
         verify(farPlayer, never()).sendMessage(anyString());
@@ -230,6 +231,8 @@ class ExamManagerTest {
 
         // At exactly 50, should NOT receive (< 50)
         verify(edgePlayer, never()).sendMessage(anyString());
+        // Instructor receives messages
+        verify(instructor, times(2)).sendMessage(anyString());
     }
 
     @Test
@@ -245,6 +248,7 @@ class ExamManagerTest {
         examManager.startSTS(instructor);
 
         // Should receive at 49.9
-        verify(boundaryPlayer).sendMessage(anyString());
+        verify(boundaryPlayer, times(2)).sendMessage(anyString());
+        verify(instructor, times(2)).sendMessage(anyString());
     }
 }

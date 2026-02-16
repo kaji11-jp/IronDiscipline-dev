@@ -66,7 +66,11 @@ class AutoPromotionManagerTest {
         when(configManager.getTimeBasedPromotionInterval()).thenReturn(60);
 
         when(taskScheduler.runGlobalTimer(any(Runnable.class), anyLong(), anyLong()))
-                .thenReturn(scheduledTask);
+                .thenAnswer(invocation -> {
+                    Runnable r = invocation.getArgument(0);
+                    r.run(); // Execute immediately for testing
+                    return scheduledTask;
+                });
 
         bukkitMock.when(Bukkit::getOnlinePlayers).thenReturn(Collections.singletonList(player));
 

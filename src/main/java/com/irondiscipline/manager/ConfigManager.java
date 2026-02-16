@@ -249,7 +249,11 @@ public class ConfigManager {
 
         for (int i = 0; i < replacements.length; i += 2) {
             if (i + 1 < replacements.length) {
-                fullMessage = fullMessage.replace(replacements[i], replacements[i + 1]);
+                String placeholder = replacements[i];
+                String replacement = replacements[i + 1];
+                if (replacement != null) {
+                    fullMessage = fullMessage.replace(placeholder, replacement);
+                }
             }
         }
         return fullMessage;

@@ -67,6 +67,7 @@ class RankManagerTest {
         when(plugin.getConfigManager()).thenReturn(configManager);
         when(plugin.getTaskScheduler()).thenReturn(taskScheduler);
         when(configManager.getRankMetaKey()).thenReturn("rank");
+        when(configManager.getPTSRequireBelowWeight()).thenReturn(25);
 
         // TaskScheduler mocks
         doAnswer(invocation -> {
