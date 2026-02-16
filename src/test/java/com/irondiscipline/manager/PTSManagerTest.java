@@ -74,11 +74,7 @@ class PTSManagerTest {
         // Mock TaskScheduler to return a mock task
         when(taskScheduler.runGlobalTimer(any(Runnable.class), anyLong(), anyLong()))
                 .thenReturn(scheduledTask);
-        when(taskScheduler.runGlobalTimer(any(java.util.function.Consumer.class), anyLong(), anyLong()))
-                .thenAnswer(inv -> {
-                    // Don't actually run the timer in tests
-                    return null;
-                });
+        doNothing().when(taskScheduler).runGlobalTimer(any(java.util.function.Consumer.class), anyLong(), anyLong());
         when(taskScheduler.runGlobalLater(any(Runnable.class), anyLong()))
                 .thenAnswer(inv -> {
                     // Don't actually run delayed tasks in tests

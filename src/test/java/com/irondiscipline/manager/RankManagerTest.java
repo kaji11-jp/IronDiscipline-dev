@@ -202,9 +202,9 @@ class RankManagerTest {
         when(rankStorage.setRank(eq(uuid), anyString(), eq(Rank.COLONEL)))
                 .thenReturn(CompletableFuture.completedFuture(true));
 
-        Rank result = rankManager.setRank(player, Rank.COLONEL).join();
+        Boolean result = rankManager.setRank(player, Rank.COLONEL).join();
 
-        assertEquals(Rank.COLONEL, result);
+        assertTrue(result);
         verify(rankStorage).setRank(eq(uuid), anyString(), eq(Rank.COLONEL));
     }
 
@@ -287,7 +287,7 @@ class RankManagerTest {
         assertEquals(Rank.PRIVATE, rankManager.getRank(player));
         
         // Clear cache
-        rankManager.clearCache(uuid);
+        rankManager.invalidateCache(uuid);
         
         // Should reload from storage
         when(rankStorage.getRank(uuid)).thenReturn(CompletableFuture.completedFuture(Rank.CAPTAIN));

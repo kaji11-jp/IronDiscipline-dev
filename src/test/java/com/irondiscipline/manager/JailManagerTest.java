@@ -154,12 +154,13 @@ class JailManagerTest {
     @Test
     void testJailOffline() {
         UUID offlinePlayerId = UUID.randomUUID();
+        UUID adminId = UUID.randomUUID();
         
-        jailManager.jailOffline(offlinePlayerId, "OfflinePlayer", "AdminName", "Test Reason");
+        jailManager.jailOffline(offlinePlayerId, "OfflinePlayer", adminId, "Test Reason");
         
         assertTrue(jailManager.isJailed(offlinePlayerId));
         verify(storageManager).saveJailedPlayerAsync(eq(offlinePlayerId), eq("OfflinePlayer"), 
-                eq("AdminName"), eq("Test Reason"), any(), any(), any());
+                anyString(), eq(adminId), any(), any(), any());
     }
 
     @Test
