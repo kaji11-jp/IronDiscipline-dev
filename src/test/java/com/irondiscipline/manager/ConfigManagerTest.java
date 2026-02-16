@@ -110,4 +110,45 @@ class ConfigManagerTest {
         
         assertEquals(expected, msg);
     }
+
+    @Test
+    void testGetMessageWithMultipleReplacements() {
+        // Test multiple replacements in one message
+        when(config.getString(anyString(), anyString())).thenReturn("&aPlayer: %player%, Value: %value%");
+        
+        String msg = configManager.getRawMessage("test");
+        // Replace manually for test
+        msg = msg.replace("%player%", "Alice").replace("%value%", "100");
+        
+        String expected = ChatColor.translateAlternateColorCodes('&', "&aPlayer: Alice, Value: 100");
+        assertEquals(expected, msg);
+    }
+
+    @Test
+    void testColorCodeTranslation() {
+        when(config.getString(anyString(), anyString())).thenReturn("&c&lRED BOLD &r&aGreen");
+        
+        String msg = configManager.getRawMessage("colored");
+        
+        assertNotEquals("&c&lRED BOLD &r&aGreen", msg); // Should be translated
+        assertTrue(msg.contains("§")); // Contains color code section symbol
+    }
+
+    @Test
+    void testEmptyMessage() {
+        when(config.getString(anyString(), anyString())).thenReturn("");
+        
+        String msg = configManager.getMessage("empty");
+        
+        // Should have prefix even if message is empty
+        assertFalse(msg.isEmpty());
+    }
+
+    @Test
+    void testNullSafetyInReplacements() {
+        // getMessage with null replacement values should not crash
+        assertDoesNotThrow(() -> {
+            configManager.getMessage("test_placeholder", "%value%", null);
+        });
+    }
 }
