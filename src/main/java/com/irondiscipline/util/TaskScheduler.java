@@ -10,7 +10,8 @@ import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Folia/Paper/Spigot 互換タスクスケジューラー
+ * Folia 専用タスクスケジューラー
+ * MorePaperLib を使用した Folia ネイティブ実装
  */
 public class TaskScheduler {
 

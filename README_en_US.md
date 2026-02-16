@@ -1,21 +1,23 @@
 [🇺🇸 English](README_en_US.md) | [🇩🇪 Deutsch](README_de_DE.md) | [🇪🇸 Español](README_es_ES.md) | [🇨🇳 中文](README_zh_CN.md) | [🇯🇵 日本語](README_ja_JP.md)
 
-# IronDiscipline-dev (Iron Discipline - LuckPerms Independent)
+# IronDiscipline-dev (Iron Discipline - Folia Edition)
 
 Comprehensive management and discipline plugin for Minecraft servers.
 Designed for military and prison RP servers.
 
-> ⚡ **This version does NOT depend on LuckPerms!** Rank data is stored in a dedicated database for faster performance and better compatibility.
+> ⚡ **This version is Folia-exclusive!** Rank data is stored in a dedicated database. LuckPerms is not required.
+> For PaperSpigot, please use [IronDiscipline](https://github.com/kaji11-jp/IronDiscipline).
 
 ## Differences from Standard Version
 
 | Item | Standard (IronDiscipline) | Dev (IronDiscipline-dev) |
 |---|---|---|
+| Server | PaperSpigot 1.18+ | Folia 1.18+ |
 | Rank Storage | LuckPerms metadata | Own DB (H2/MySQL) |
 | LuckPerms | Required | Not required (optional for migration) |
 | Performance | Via API | Direct DB + Cache |
 | Concurrency | Standard | Thread-safe concurrent processing |
-| Folia Support | Not supported | Fully supported |
+| Folia Support | Not supported | Fully supported (exclusive) |
 
 ## Features
 
@@ -39,12 +41,12 @@ Designed for military and prison RP servers.
 - **Playtime Management**: Online time tracking
 - **Message Customization**: Most in-game messages can be changed
 - **Data Migration**: Easy migration from LuckPerms with `/irondev migrate`
-- **Folia Support**: Full Folia compatibility via MorePaperLib
+- **Folia Exclusive**: Native Folia scheduling via MorePaperLib
 
 ## Requirements
 
 - Java 17+
-- Paper / Spigot / Folia 1.18+ (Full Folia support)
+- Folia 1.18+ (**PaperSpigot not supported**)
 - MySQL, SQLite or H2 Database (default)
 
 ## Installation

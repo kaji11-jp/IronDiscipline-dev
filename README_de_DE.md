@@ -1,21 +1,23 @@
 [🇺🇸 English](README_en_US.md) | [🇩🇪 Deutsch](README_de_DE.md) | [🇪🇸 Español](README_es_ES.md) | [🇨🇳 中文](README_zh_CN.md) | [🇯🇵 日本語](README_ja_JP.md)
 
-# IronDiscipline-dev (Eiserne Disziplin - LuckPerms Unabhängig)
+# IronDiscipline-dev (Eiserne Disziplin - Folia-Edition)
 
 Umfassendes Verwaltungs- und Disziplin-Plugin für Minecraft-Server.
 Entwickelt für Militär- und Gefängnis-RP-Server.
 
-> ⚡ **Diese Version benötigt KEIN LuckPerms!** Rangdaten werden in einer eigenen Datenbank gespeichert für bessere Leistung und Kompatibilität.
+> ⚡ **Diese Version ist exklusiv für Folia!** Rangdaten werden in einer eigenen Datenbank gespeichert. LuckPerms ist nicht erforderlich.
+> Für PaperSpigot verwenden Sie bitte [IronDiscipline](https://github.com/kaji11-jp/IronDiscipline).
 
 ## Unterschiede zur Standardversion
 
 | Element | Standard (IronDiscipline) | Dev (IronDiscipline-dev) |
 |---|---|---|
+| Server | PaperSpigot 1.18+ | Folia 1.18+ |
 | Rang-Speicherung | LuckPerms Metadaten | Eigene DB (H2/MySQL) |
 | LuckPerms | Erforderlich | Nicht erforderlich (optional für Migration) |
 | Leistung | Über API | Direkte DB + Cache |
 | Nebenläufigkeit | Standard | Thread-sichere parallele Verarbeitung |
-| Folia-Unterstützung | Nicht unterstützt | Vollständig unterstützt |
+| Folia-Unterstützung | Nicht unterstützt | Vollständig unterstützt (exklusiv) |
 
 ## Funktionen
 
@@ -30,12 +32,12 @@ Entwickelt für Militär- und Gefängnis-RP-Server.
   - Automatische Erkennung und Reparatur von Dateninkonsistenzen
 - **Prüfungssystem**: Beförderungsprüfungen mit GUI
 - **Datenmigration**: Einfache Migration von LuckPerms mit `/irondev migrate`
-- **Folia-Unterstützung**: Vollständige Folia-Kompatibilität über MorePaperLib
+- **Folia-Exklusiv**: Natives Folia-Scheduling über MorePaperLib
 
 ## Anforderungen
 
 - Java 17+
-- Paper / Spigot / Folia 1.18+ (Vollständige Folia-Unterstützung)
+- Folia 1.18+ (**PaperSpigot nicht unterstützt**)
 - MySQL, SQLite oder H2 Database (Standard)
 
 ## Installation

@@ -4,7 +4,7 @@ main: com.irondiscipline.IronDiscipline
 api-version: '1.20'
 folia-supported: true
 authors: [IronDiscipline Team]
-description: 鉄の規律 - 軍事RP向け規律システムプラグイン（LuckPerms非依存版）
+description: 鉄の規律 - 軍事RP向け規律システムプラグイン（Folia専用版）
 website: https://github.com/irondiscipline
 
 softdepend:

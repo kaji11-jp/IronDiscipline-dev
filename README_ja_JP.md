@@ -1,21 +1,23 @@
 [🇺🇸 English](README_en_US.md) | [🇩🇪 Deutsch](README_de_DE.md) | [🇪🇸 Español](README_es_ES.md) | [🇨🇳 中文](README_zh_CN.md) | [🇯🇵 日本語](README_ja_JP.md)
 
-# IronDiscipline-dev (鉄の規律 - LuckPerms非依存版)
+# IronDiscipline-dev (鉄の規律 - Folia専用版)
 
 Minecraftサーバー用 総合管理・規律維持プラグイン。
 軍隊・刑務所RPサーバー向けに設計されています。
 
-> ⚡ **このバージョンはLuckPermsに依存しません！** 階級データは独自DBに保存されるため、より高速で互換性が高いです。
+> ⚡ **このバージョンは Folia 専用です！** 階級データは独自DBに保存され、LuckPermsに依存しません。
+> PaperSpigotを使用する場合は [IronDiscipline](https://github.com/kaji11-jp/IronDiscipline) をご利用ください。
 
 ## 通常版との違い
 
 | 項目 | 通常版 (IronDiscipline) | dev版 (IronDiscipline-dev) |
 |---|---|---|
+| 対応サーバー | PaperSpigot 1.18+ | Folia 1.18+ |
 | 階級保存先 | LuckPermsメタデータ | 独自DB (H2/MySQL) |
 | LuckPerms | 必須 | 不要（移行時のみオプション） |
 | パフォーマンス | API経由 | 直接DB+キャッシュ |
 | 並行処理 | 標準 | スレッドセーフな並行処理対応 |
-| Folia対応 | 非対応 | 完全対応 |
+| Folia対応 | 非対応 | 完全対応（専用） |
 
 ## 機能
 
@@ -30,12 +32,12 @@ Minecraftサーバー用 総合管理・規律維持プラグイン。
   - データ不整合の自動検出・修復
 - **試験システム**: GUIを使用した昇進試験
 - **データ移行**: `/irondev migrate` でLuckPermsからデータを簡単移行
-- **Folia対応**: MorePaperLibによる完全なFolia互換性
+- **Folia専用**: MorePaperLibによるFoliaネイティブなスケジューリング
 
 ## 必要要件
 
 - Java 17+
-- Paper / Spigot / Folia 1.18+（Folia完全対応）
+- Folia 1.18+（**PaperSpigot非対応**）
 - MySQL, SQLite または H2 Database (デフォルト)
 
 ## インストール

@@ -18,7 +18,7 @@ import java.util.logging.Level;
 /**
  * IronDiscipline-dev (鉄の規律)
  * 軍事RP向け規律システムプラグイン
- * LuckPerms非依存版
+ * Folia専用版（LuckPerms非依存）
  */
 public class IronDiscipline extends JavaPlugin {
 
@@ -124,7 +124,7 @@ public class IronDiscipline extends JavaPlugin {
         getLogger().info("========================================");
         getLogger().info("   鉄の規律 (IronDiscipline-dev)");
         getLogger().info("   Military RP Discipline System");
-        getLogger().info("   LuckPerms非依存版");
+        getLogger().info("   Folia専用版");
         getLogger().info("   Version: " + getDescription().getVersion());
         getLogger().info("========================================");
     }
