@@ -14,20 +14,28 @@ Minecraft服务器综合管理与纪律插件。
 | 军衔存储 | LuckPerms元数据 | 独立数据库 (H2/MySQL) |
 | LuckPerms | 必需 | 不需要（仅迁移时可选） |
 | 性能 | 通过API | 直接数据库+缓存 |
+| 并发处理 | 标准 | 线程安全并发处理 |
+| Folia支持 | 不支持 | 完全支持 |
 
 ## 功能
 
 - **军衔系统**：按军衔管理权限
+  - 线程安全并发缓存（`ConcurrentHashMap`）
+  - 竞态条件防护
 - **PTS（发言许可）**：下级发言许可系统
 - **Discord集成**：账号关联、角色同步
 - **警告系统**：警告累积自动处罚
+  - 防止重复监禁
+  - 即时背包备份防止物品丢失
+  - 自动检测和修复数据不一致
 - **考试系统**：GUI晋升考试
 - **数据迁移**：使用 `/irondev migrate` 从LuckPerms轻松迁移
+- **Folia支持**：通过MorePaperLib完全兼容Folia
 
 ## 要求
 
 - Java 17+
-- Paper / Spigot / Folia 1.18+
+- Paper / Spigot / Folia 1.18+（完全支持Folia）
 - MySQL、SQLite 或 H2 Database（默认）
 
 ## 安装

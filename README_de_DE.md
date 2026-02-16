@@ -14,20 +14,28 @@ Entwickelt für Militär- und Gefängnis-RP-Server.
 | Rang-Speicherung | LuckPerms Metadaten | Eigene DB (H2/MySQL) |
 | LuckPerms | Erforderlich | Nicht erforderlich (optional für Migration) |
 | Leistung | Über API | Direkte DB + Cache |
+| Nebenläufigkeit | Standard | Thread-sichere parallele Verarbeitung |
+| Folia-Unterstützung | Nicht unterstützt | Vollständig unterstützt |
 
 ## Funktionen
 
 - **Rangsystem**: Berechtigungsverwaltung nach Rang
+  - Thread-sicherer paralleler Cache (`ConcurrentHashMap`)
+  - Schutz vor Race-Conditions
 - **PTS (Permission to Speak)**: Sprecherlaubnis-System
 - **Discord-Integration**: Kontoverknüpfung, Rollensynchronisation
 - **Warnsystem**: Verwarnungen mit automatischer Bestrafung
+  - Verhinderung doppelter Inhaftierungen
+  - Sofortige Inventar-Sicherung zur Vermeidung von Gegenstandsverlust
+  - Automatische Erkennung und Reparatur von Dateninkonsistenzen
 - **Prüfungssystem**: Beförderungsprüfungen mit GUI
 - **Datenmigration**: Einfache Migration von LuckPerms mit `/irondev migrate`
+- **Folia-Unterstützung**: Vollständige Folia-Kompatibilität über MorePaperLib
 
 ## Anforderungen
 
 - Java 17+
-- Paper / Spigot / Folia 1.18+
+- Paper / Spigot / Folia 1.18+ (Vollständige Folia-Unterstützung)
 - MySQL, SQLite oder H2 Database (Standard)
 
 ## Installation

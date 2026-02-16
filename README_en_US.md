@@ -14,10 +14,14 @@ Designed for military and prison RP servers.
 | Rank Storage | LuckPerms metadata | Own DB (H2/MySQL) |
 | LuckPerms | Required | Not required (optional for migration) |
 | Performance | Via API | Direct DB + Cache |
+| Concurrency | Standard | Thread-safe concurrent processing |
+| Folia Support | Not supported | Fully supported |
 
 ## Features
 
 - **Rank System**: Permission management by rank, fully customizable in config.yml
+  - Thread-safe concurrent cache (`ConcurrentHashMap`)
+  - Race condition protection
 - **PTS (Permission to Speak)**: Speaking permission system for lower ranks
 - **Discord Integration**:
   - Account linking (`/link`)
@@ -28,15 +32,19 @@ Designed for military and prison RP servers.
   - Accumulate warnings with `/warn`
   - Auto-jail/kick at threshold
   - `/jail` isolation system (DB saved)
+  - Duplicate jail prevention
+  - Instant inventory backup to prevent item loss
+  - Auto-detection and repair of data inconsistencies
 - **Exam System**: Promotion exams using GUI
 - **Playtime Management**: Online time tracking
 - **Message Customization**: Most in-game messages can be changed
 - **Data Migration**: Easy migration from LuckPerms with `/irondev migrate`
+- **Folia Support**: Full Folia compatibility via MorePaperLib
 
 ## Requirements
 
 - Java 17+
-- Paper / Spigot / Folia 1.18+
+- Paper / Spigot / Folia 1.18+ (Full Folia support)
 - MySQL, SQLite or H2 Database (default)
 
 ## Installation
