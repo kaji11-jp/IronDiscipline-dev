@@ -42,10 +42,14 @@ jobs:
       run: |
         VERSION="${{ steps.version.outputs.version }}"
         TIMESTAMP="${{ steps.version.outputs.timestamp }}"
-        # Find the built jar (excluding any existing latest.jar)
-        BUILT_JAR=$(find target -name "IronDiscipline-dev-*.jar" ! -name "*latest.jar" -type f)
+        # Find the built jar (excluding any existing latest.jar), take first match
+        BUILT_JAR=$(find target -name "IronDiscipline-dev-*.jar" ! -name "*latest.jar" -type f -print -quit)
+        if [ -z "$BUILT_JAR" ]; then
+          echo "Error: No built JAR found"
+          exit 1
+        fi
         mv "$BUILT_JAR" target/IronDiscipline-dev-${VERSION}-${TIMESTAMP}.jar
-        # Create a copy for the latest release (GitHub releases require separate files)
+        # Create a copy for the latest release (GitHub releases require separate file references)
         cp target/IronDiscipline-dev-${VERSION}-${TIMESTAMP}.jar target/IronDiscipline-dev-latest.jar
 
     - name: Create Versioned Release
