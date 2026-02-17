@@ -27,16 +27,61 @@ jobs:
     - name: Build with Maven
       run: mvn -B package -DskipTests --file pom.xml
 
-    - name: Rename Artifact
-      run: mv target/IronDiscipline-dev-*.jar target/IronDiscipline-dev-latest.jar
+    - name: Get version and timestamp
+      id: version
+      run: |
+        VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+        TIMESTAMP=$(date -u +"%Y%m%d-%H%M%S")
+        RELEASE_TAG="v${VERSION}-${TIMESTAMP}"
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "timestamp=$TIMESTAMP" >> $GITHUB_OUTPUT
+        echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
+        echo "Release tag will be: $RELEASE_TAG"
 
-    - name: Release
+    - name: Rename Artifact with version
+      run: |
+        VERSION="${{ steps.version.outputs.version }}"
+        TIMESTAMP="${{ steps.version.outputs.timestamp }}"
+        mv target/IronDiscipline-dev-*.jar target/IronDiscipline-dev-${VERSION}-${TIMESTAMP}.jar
+        cp target/IronDiscipline-dev-${VERSION}-${TIMESTAMP}.jar target/IronDiscipline-dev-latest.jar
+
+    - name: Create Versioned Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ steps.version.outputs.release_tag }}
+        name: IronDiscipline-dev ${{ steps.version.outputs.version }} (${{ steps.version.outputs.timestamp }})
+        body: |
+          ## IronDiscipline-dev ビルド
+          **バージョン:** ${{ steps.version.outputs.version }}  
+          **ビルド日時:** ${{ steps.version.outputs.timestamp }} UTC
+          
+          LuckPermsに依存しない高速版です。
+          
+          ### 通常版からの移行
+          ```
+          /irondev migrate
+          ```
+          
+          ### 変更履歴
+          コミット: ${{ github.sha }}
+        files: target/IronDiscipline-dev-${{ steps.version.outputs.version }}-${{ steps.version.outputs.timestamp }}.jar
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Update Latest Release
       uses: softprops/action-gh-release@v1
       with:
         tag_name: latest
         name: Latest Build (LuckPerms非依存版)
         body: |
-          ## IronDiscipline-dev 自動ビルド
+          ## IronDiscipline-dev 最新ビルド
+          **最新バージョン:** ${{ steps.version.outputs.version }}  
+          **ビルド日時:** ${{ steps.version.outputs.timestamp }} UTC
+          
+          このリリースは常に最新のビルドを指します。
+          特定のバージョンが必要な場合は、タイムスタンプ付きリリースをご利用ください。
           
           LuckPermsに依存しない高速版です。
           
