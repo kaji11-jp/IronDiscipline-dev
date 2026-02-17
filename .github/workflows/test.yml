@@ -27,7 +27,7 @@ jobs:
       if: always()
       run: |
         echo "## Test Results" >> $GITHUB_STEP_SUMMARY
-        if [ -f target/surefire-reports/*.txt ]; then
+        if [ -d target/surefire-reports ] && ls target/surefire-reports/*.txt >/dev/null 2>&1; then
           echo "Tests completed successfully!" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           cat target/surefire-reports/*.txt | grep "Tests run:" | tail -1 >> $GITHUB_STEP_SUMMARY
