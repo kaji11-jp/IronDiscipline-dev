@@ -21,8 +21,11 @@ jobs:
         distribution: 'temurin'
         cache: maven
 
+    - name: Run Tests
+      run: mvn -B test --file pom.xml
+
     - name: Build with Maven
-      run: mvn -B package --file pom.xml
+      run: mvn -B package -DskipTests --file pom.xml
 
     - name: Rename Artifact
       run: mv target/IronDiscipline-dev-*.jar target/IronDiscipline-dev-latest.jar
