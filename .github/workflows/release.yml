@@ -42,7 +42,10 @@ jobs:
       run: |
         VERSION="${{ steps.version.outputs.version }}"
         TIMESTAMP="${{ steps.version.outputs.timestamp }}"
-        mv target/IronDiscipline-dev-*.jar target/IronDiscipline-dev-${VERSION}-${TIMESTAMP}.jar
+        # Find the built jar (excluding any existing latest.jar)
+        BUILT_JAR=$(find target -name "IronDiscipline-dev-*.jar" ! -name "*latest.jar" -type f)
+        mv "$BUILT_JAR" target/IronDiscipline-dev-${VERSION}-${TIMESTAMP}.jar
+        # Create a copy for the latest release (GitHub releases require separate files)
         cp target/IronDiscipline-dev-${VERSION}-${TIMESTAMP}.jar target/IronDiscipline-dev-latest.jar
 
     - name: Create Versioned Release
