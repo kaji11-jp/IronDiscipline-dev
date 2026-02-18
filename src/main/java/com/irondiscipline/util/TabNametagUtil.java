@@ -18,7 +18,7 @@ public class TabNametagUtil {
     /**
      * プレイヤーのTab/ネームタグを更新
      */
-    public static void updatePlayer(Player player, Rank rank) {
+    public static void updatePlayer(Player player, Rank rank, String divisionDisplay) {
         Scoreboard scoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
         
         // チーム名（ソート順のため重みを使用）
@@ -37,18 +37,40 @@ public class TabNametagUtil {
             team = scoreboard.registerNewTeam(teamName);
         }
         
-        // プレフィックス設定（16文字制限対応）
-        String prefix = rank.getDisplay() + " " + ChatColor.RESET;
+        // プレフィックス設定（階級のみ、スペースなし）
+        String prefix = rank.getDisplay() + ChatColor.RESET;
         if (prefix.length() > 64) {
             prefix = prefix.substring(0, 64);
         }
         team.setPrefix(prefix);
         
+        // サフィックス設定（部隊表示）
+        String suffix = "";
+        if (divisionDisplay != null && !divisionDisplay.isEmpty()) {
+            suffix = divisionDisplay;
+            if (suffix.length() > 64) {
+                suffix = suffix.substring(0, 64);
+            }
+        }
+        team.setSuffix(suffix);
+        
         // チームにプレイヤーを追加
         team.addEntry(player.getName());
         
         // Tabリストのヘッダー表示名も更新
-        player.setPlayerListName(rank.getDisplay() + " " + ChatColor.WHITE + player.getName());
+        // フォーマット: [階級]ユーザーネーム[部隊所属]
+        String displayName = rank.getDisplay() + ChatColor.WHITE + player.getName();
+        if (divisionDisplay != null && !divisionDisplay.isEmpty()) {
+            displayName += divisionDisplay;
+        }
+        player.setPlayerListName(displayName);
+    }
+    
+    /**
+     * プレイヤーのTab/ネームタグを更新（部隊なしの互換用）
+     */
+    public static void updatePlayer(Player player, Rank rank) {
+        updatePlayer(player, rank, null);
     }
 
     /**
