@@ -37,7 +37,7 @@ public class TabNametagUtil {
             team = scoreboard.registerNewTeam(teamName);
         }
         
-        // プレフィックス設定（階級のみ、スペースなし）
+        // プレフィックス設定（階級のみ、スペースなし、RESETで色リセット）
         String prefix = rank.getDisplay() + ChatColor.RESET;
         if (prefix.length() > 64) {
             prefix = prefix.substring(0, 64);
@@ -68,6 +68,7 @@ public class TabNametagUtil {
     
     /**
      * プレイヤーのTab/ネームタグを更新（部隊なしの互換用）
+     * divisionDisplayにnullを渡して呼び出し、部隊表示なしでTab/ネームタグを更新
      */
     public static void updatePlayer(Player player, Rank rank) {
         updatePlayer(player, rank, null);
