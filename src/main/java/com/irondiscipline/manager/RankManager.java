@@ -76,7 +76,8 @@ public class RankManager {
                     if (!player.isOnline())
                         return;
 
-                    TabNametagUtil.updatePlayer(player, newRank);
+                    String divisionDisplay = plugin.getDivisionManager().getDivisionDisplay(player.getUniqueId());
+                    TabNametagUtil.updatePlayer(player, newRank, divisionDisplay);
 
                     // 本人に通知
                     player.sendMessage(plugin.getConfigManager().getMessage("rank_changed_self",
@@ -156,7 +157,8 @@ public class RankManager {
                 // 再ロード
                 getRankAsync(playerId).thenAccept(rank -> {
                     plugin.getTaskScheduler().runEntity(player, () -> {
-                        TabNametagUtil.updatePlayer(player, rank);
+                        String divisionDisplay = plugin.getDivisionManager().getDivisionDisplay(playerId);
+                        TabNametagUtil.updatePlayer(player, rank, divisionDisplay);
                     });
                 });
             });
@@ -178,7 +180,8 @@ public class RankManager {
         loadPlayerCache(player.getUniqueId());
         // Tab/Nametag更新は別途JoinEventで行う
         plugin.getTaskScheduler().runEntity(player, () -> {
-            TabNametagUtil.updatePlayer(player, getRank(player));
+            String divisionDisplay = plugin.getDivisionManager().getDivisionDisplay(player.getUniqueId());
+            TabNametagUtil.updatePlayer(player, getRank(player), divisionDisplay);
         });
     }
 

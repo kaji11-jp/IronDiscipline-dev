@@ -1,6 +1,8 @@
 package com.irondiscipline.manager;
 
 import com.irondiscipline.IronDiscipline;
+import com.irondiscipline.model.Rank;
+import com.irondiscipline.util.TabNametagUtil;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.bukkit.Bukkit;
@@ -56,6 +58,9 @@ public class DivisionManager {
         divisions.add(div);
         playerDivisions.put(playerId, div);
         saveData();
+        
+        // オンラインプレイヤーならTab/ネームタグを更新
+        updatePlayerDisplay(playerId);
     }
 
     /**
@@ -64,6 +69,23 @@ public class DivisionManager {
     public void removeDivision(UUID playerId) {
         playerDivisions.remove(playerId);
         saveData();
+        
+        // オンラインプレイヤーならTab/ネームタグを更新
+        updatePlayerDisplay(playerId);
+    }
+    
+    /**
+     * プレイヤーのTab/ネームタグ表示を更新
+     */
+    private void updatePlayerDisplay(UUID playerId) {
+        Player player = Bukkit.getPlayer(playerId);
+        if (player != null && player.isOnline()) {
+            plugin.getTaskScheduler().runEntity(player, () -> {
+                Rank rank = plugin.getRankManager().getRank(player);
+                String divisionDisplay = getDivisionDisplay(playerId);
+                TabNametagUtil.updatePlayer(player, rank, divisionDisplay);
+            });
+        }
     }
 
     /**

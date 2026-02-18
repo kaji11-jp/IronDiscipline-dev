@@ -36,6 +36,8 @@ class RankManagerTest {
     @Mock
     private ConfigManager configManager;
     @Mock
+    private DivisionManager divisionManager;
+    @Mock
     private Player player;
     @Mock
     private BukkitScheduler scheduler;
@@ -66,6 +68,8 @@ class RankManagerTest {
         // Basic Plugin Setup
         when(plugin.getConfigManager()).thenReturn(configManager);
         when(plugin.getTaskScheduler()).thenReturn(taskScheduler);
+        when(plugin.getDivisionManager()).thenReturn(divisionManager);
+        when(divisionManager.getDivisionDisplay(any(UUID.class))).thenReturn("");
         when(configManager.getRankMetaKey()).thenReturn("rank");
         when(configManager.getPTSRequireBelowWeight()).thenReturn(25);
 
