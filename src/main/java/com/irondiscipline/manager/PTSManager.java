@@ -44,6 +44,16 @@ public class PTSManager {
      * 発言許可があるかチェック
      */
     public boolean hasPermissionToSpeak(Player player) {
+        // PTSが無効化されている場合は常に許可
+        if (!plugin.getConfigManager().isPTSEnabled()) {
+            return true;
+        }
+
+        // 試験中でない場合は常に許可
+        if (plugin.getExamManager() != null && !plugin.getExamManager().isInExam(player.getUniqueId())) {
+            return true;
+        }
+
         // PTS免除権限を持っている場合
         if (player.hasPermission("iron.pts.bypass")) {
             return true;
