@@ -55,7 +55,9 @@ ranks:
 
 # PTS (発言許可) システム設定
 pts:
-  # PTSシステムの有効/無効 (試験中のみ有効化する場合はfalse)
+  # PTSシステムの有効/無効
+  # true: 試験中にPTSチェックを実施
+  # false: PTSチェックを完全に無効化（常に発言許可）
   enabled: false
   # PTSが必要な最大階級重み (この重み以下はPTS必須)
   require_below_weight: 25
