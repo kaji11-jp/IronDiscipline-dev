@@ -1,6 +1,7 @@
 package com.irondiscipline.manager;
 
 import com.irondiscipline.IronDiscipline;
+import com.irondiscipline.model.Rank;
 import com.irondiscipline.util.TabNametagUtil;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -80,8 +81,8 @@ public class DivisionManager {
         Player player = Bukkit.getPlayer(playerId);
         if (player != null && player.isOnline()) {
             plugin.getTaskScheduler().runEntity(player, () -> {
-                var rank = plugin.getRankManager().getRank(player);
-                var divisionDisplay = getDivisionDisplay(playerId);
+                Rank rank = plugin.getRankManager().getRank(player);
+                String divisionDisplay = getDivisionDisplay(playerId);
                 TabNametagUtil.updatePlayer(player, rank, divisionDisplay);
             });
         }
