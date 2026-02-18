@@ -242,7 +242,7 @@ public class JailManager {
     private void handleJailJoin(Player player) {
         UUID playerId = player.getUniqueId();
         
-        // 隔離場所チェック
+        // 隔離場所のチェック
         Location jailLocation = plugin.getConfigManager().getJailLocation();
         if (jailLocation == null) {
             plugin.getLogger().warning("Jail location not set, cannot jail player " + player.getName());
