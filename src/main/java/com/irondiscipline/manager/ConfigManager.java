@@ -103,6 +103,10 @@ public class ConfigManager {
 
     // ===== PTS =====
 
+    public boolean isPTSEnabled() {
+        return config.getBoolean("pts.enabled", false);
+    }
+
     public int getPTSRequireBelowWeight() {
         return config.getInt("pts.require_below_weight", 25);
     }

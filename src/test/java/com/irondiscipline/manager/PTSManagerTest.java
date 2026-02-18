@@ -35,6 +35,8 @@ class PTSManagerTest {
     @Mock
     private RankManager rankManager;
     @Mock
+    private ExamManager examManager;
+    @Mock
     private TaskScheduler taskScheduler;
     @Mock
     private Player player;
@@ -64,12 +66,16 @@ class PTSManagerTest {
         
         when(plugin.getConfigManager()).thenReturn(configManager);
         when(plugin.getRankManager()).thenReturn(rankManager);
+        when(plugin.getExamManager()).thenReturn(examManager);
         when(plugin.getTaskScheduler()).thenReturn(taskScheduler);
         
         when(configManager.getMessage(anyString())).thenReturn("Test Message");
         when(configManager.getMessage(anyString(), anyString(), anyString())).thenReturn("Test Message");
         when(configManager.getRawMessage(anyString())).thenReturn("Raw Message");
         when(configManager.getPTSRequireBelowWeight()).thenReturn(25);
+        when(configManager.isPTSEnabled()).thenReturn(true); // Default: PTS enabled
+        
+        when(examManager.isInExam(any(UUID.class))).thenReturn(true); // Default: in exam
         
         // Mock TaskScheduler to return a mock task
         when(taskScheduler.runGlobalTimer(any(Runnable.class), anyLong(), anyLong()))
@@ -93,6 +99,27 @@ class PTSManagerTest {
     @Test
     void testHasPermissionToSpeak_WithBypassPermission() {
         when(player.hasPermission("iron.pts.bypass")).thenReturn(true);
+        
+        assertTrue(ptsManager.hasPermissionToSpeak(player));
+    }
+
+    @Test
+    void testHasPermissionToSpeak_PTSDisabled() {
+        // PTSシステムが無効の場合は常に許可
+        when(configManager.isPTSEnabled()).thenReturn(false);
+        when(player.hasPermission("iron.pts.bypass")).thenReturn(false);
+        when(rankManager.requiresPTS(player)).thenReturn(true); // Low rank
+        
+        assertTrue(ptsManager.hasPermissionToSpeak(player));
+    }
+
+    @Test
+    void testHasPermissionToSpeak_NotInExam() {
+        // 試験中でない場合は常に許可
+        when(configManager.isPTSEnabled()).thenReturn(true);
+        when(examManager.isInExam(playerId)).thenReturn(false);
+        when(player.hasPermission("iron.pts.bypass")).thenReturn(false);
+        when(rankManager.requiresPTS(player)).thenReturn(true); // Low rank
         
         assertTrue(ptsManager.hasPermissionToSpeak(player));
     }
