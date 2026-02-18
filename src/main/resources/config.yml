@@ -55,6 +55,8 @@ ranks:
 
 # PTS (発言許可) システム設定
 pts:
+  # PTSシステムの有効/無効 (試験中のみ有効化する場合はfalse)
+  enabled: false
   # PTSが必要な最大階級重み (この重み以下はPTS必須)
   require_below_weight: 25
   # デフォルトの発言許可時間 (秒)
