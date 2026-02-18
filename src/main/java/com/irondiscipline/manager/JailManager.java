@@ -252,6 +252,7 @@ public class JailManager {
         }
         
         // 元の場所とインベントリをキャプチャ (バックアップ作成用)
+        // これらは後でDB保存やロールバックに使用される
         Location initialLocation = player.getLocation();
         ItemStack[] initialContents = cloneItems(player.getInventory().getContents());
         ItemStack[] initialArmor = cloneItems(player.getInventory().getArmorContents());
