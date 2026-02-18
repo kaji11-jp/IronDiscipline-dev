@@ -242,16 +242,22 @@ public class JailManager {
     private void handleJailJoin(Player player) {
         UUID playerId = player.getUniqueId();
         
+        // 隔離場所チェック
+        Location jailLocation = plugin.getConfigManager().getJailLocation();
+        if (jailLocation == null) {
+            plugin.getLogger().warning("Jail location not set, cannot jail player " + player.getName());
+            knownJailedIds.remove(playerId);
+            jailedPlayers.remove(playerId);
+            return;
+        }
+        
         // 元の場所とインベントリをキャプチャ (バックアップ作成用)
         Location initialLocation = player.getLocation();
         ItemStack[] initialContents = cloneItems(player.getInventory().getContents());
         ItemStack[] initialArmor = cloneItems(player.getInventory().getArmorContents());
 
         // 即座に隔離場所へ飛ばす
-        Location jailLocation = plugin.getConfigManager().getJailLocation();
-        if (jailLocation != null) {
-            player.teleport(jailLocation);
-        }
+        player.teleport(jailLocation);
         player.setGameMode(GameMode.ADVENTURE);
 
         // アイテム使用防止 & レースコンディション対策 (即時クリア)
@@ -390,10 +396,20 @@ public class JailManager {
      * 隔離データ内部クラス
      */
     private static class JailData {
+        final UUID playerId;
+        final String playerName;
+        final String reason;
+        final long jailedAt;
+        final UUID jailedBy;
         final String originalLocation;
 
         JailData(UUID playerId, String playerName, String reason,
                 long jailedAt, UUID jailedBy, String originalLocation) {
+            this.playerId = playerId;
+            this.playerName = playerName;
+            this.reason = reason;
+            this.jailedAt = jailedAt;
+            this.jailedBy = jailedBy;
             this.originalLocation = originalLocation;
         }
     }
