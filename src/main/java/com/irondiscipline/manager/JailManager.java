@@ -216,13 +216,16 @@ public class JailManager {
      */
     public void loadJailStatusSync(UUID playerId) {
         try {
-            boolean isJailed = plugin.getStorageManager().isJailedAsync(playerId).join();
+            boolean isJailed = plugin.getStorageManager().isJailedAsync(playerId).get(5, java.util.concurrent.TimeUnit.SECONDS);
             if (isJailed) {
                 knownJailedIds.add(playerId);
             } else {
                 knownJailedIds.remove(playerId);
                 jailedPlayers.remove(playerId);
             }
+        } catch (java.util.concurrent.TimeoutException e) {
+            plugin.getLogger().warning("Jail status load timed out for " + playerId);
+            throw new RuntimeException("Jail status loading timed out", e);
         } catch (Exception e) {
             plugin.getLogger().warning("Jail status load failed for " + playerId);
             e.printStackTrace();

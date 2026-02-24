@@ -55,8 +55,9 @@ public class ChatListener implements Listener {
         }
 
         // ===== 4. チャットフォーマットに階級プレフィックスを適用 =====
-        String format = rank.getDisplay() + " " + ChatColor.WHITE + "%s" +
-                ChatColor.GRAY + ": " + ChatColor.WHITE + "%s";
+        String safeRankDisplay = rank.getDisplay().replace("%", "%%");
+        String format = safeRankDisplay + " " + ChatColor.WHITE + "%1$s" +
+                ChatColor.GRAY + ": " + ChatColor.WHITE + "%2$s";
         event.setFormat(format);
     }
 }
