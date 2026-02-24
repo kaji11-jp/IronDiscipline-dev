@@ -21,7 +21,7 @@ public class RankStorageManager {
 
     private final IronDiscipline plugin;
     private final Connection connection;
-    private final ExecutorService dbExecutor = Executors.newSingleThreadExecutor();
+    private final ExecutorService dbExecutor = Executors.newCachedThreadPool();
 
     public RankStorageManager(IronDiscipline plugin, Connection connection) {
         this.plugin = plugin;

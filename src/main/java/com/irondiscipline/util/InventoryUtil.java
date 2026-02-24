@@ -43,7 +43,11 @@ public class InventoryUtil {
             ByteArrayInputStream inputStream = new ByteArrayInputStream(Base64.getDecoder().decode(data));
             BukkitObjectInputStream dataInput = new BukkitObjectInputStream(inputStream);
 
-            ItemStack[] items = new ItemStack[dataInput.readInt()];
+            int size = dataInput.readInt();
+            if (size < 0 || size > 256) {
+                throw new IllegalArgumentException("Invalid inventory size detected: " + size);
+            }
+            ItemStack[] items = new ItemStack[size];
 
             for (int i = 0; i < items.length; i++) {
                 items[i] = (ItemStack) dataInput.readObject();

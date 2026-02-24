@@ -28,15 +28,10 @@ public class StorageManager {
     private Connection connection;
     private final String dbType;
 
-    // Caches for jailed player data to avoid blocking calls on read
-    private final Map<UUID, String> armorCache = new ConcurrentHashMap<>();
-    private final Map<UUID, String> inventoryCache = new ConcurrentHashMap<>();
-    private final Map<UUID, String> locationCache = new ConcurrentHashMap<>();
+    // Caches removed to prevent memory leaks
 
-    // Executor for DB operations to avoid blocking common ForkJoinPool
-    private final ExecutorService dbExecutor = Executors.newSingleThreadExecutor();
-    // Track removal times to prevent stale cache population
-    private final Map<UUID, Long> lastRemoveTime = new ConcurrentHashMap<>();
+    // Executor for DB operations
+    private final ExecutorService dbExecutor = Executors.newCachedThreadPool();
 
     public StorageManager(IronDiscipline plugin) {
         this.plugin = plugin;
@@ -315,11 +310,6 @@ public class StorageManager {
                     ps.setString(8, armorBackup);
                     ps.executeUpdate();
 
-                    // Update caches
-                    if (armorBackup != null) armorCache.put(playerId, armorBackup);
-                    if (inventoryBackup != null) inventoryCache.put(playerId, inventoryBackup);
-                    if (originalLocation != null) locationCache.put(playerId, originalLocation);
-
                     return true;
                 }
             } catch (SQLException e) {
@@ -352,20 +342,12 @@ public class StorageManager {
      * 隔離データを削除
      */
     public CompletableFuture<Void> removeJailedPlayerAsync(UUID playerId) {
-        // Mark removal time to prevent concurrent reads from populating stale cache
-        lastRemoveTime.put(playerId, System.nanoTime());
-
         return CompletableFuture.runAsync(() -> {
             try {
                 String sql = "DELETE FROM jailed_players WHERE player_id = ?";
                 try (PreparedStatement ps = connection.prepareStatement(sql)) {
                     ps.setString(1, playerId.toString());
                     ps.executeUpdate();
-
-                    // Clear caches
-                    armorCache.remove(playerId);
-                    inventoryCache.remove(playerId);
-                    locationCache.remove(playerId);
                 }
             } catch (SQLException e) {
                 plugin.getLogger().log(Level.WARNING, plugin.getConfigManager().getRawMessage("log_delete_failed_jail"), e);
@@ -405,11 +387,6 @@ public class StorageManager {
      * 隔離プレイヤーの元座標を取得 (非同期)
      */
     public CompletableFuture<String> getOriginalLocationAsync(UUID playerId) {
-        if (locationCache.containsKey(playerId)) {
-            return CompletableFuture.completedFuture(locationCache.get(playerId));
-        }
-
-        long startTime = System.nanoTime();
         return CompletableFuture.supplyAsync(() -> {
             try {
                 String sql = "SELECT original_location FROM jailed_players WHERE player_id = ?";
@@ -417,14 +394,7 @@ public class StorageManager {
                     ps.setString(1, playerId.toString());
                     try (ResultSet rs = ps.executeQuery()) {
                         if (rs.next()) {
-                            String loc = rs.getString("original_location");
-                            if (loc != null) {
-                                Long removed = lastRemoveTime.get(playerId);
-                                if (removed == null || removed < startTime) {
-                                    locationCache.put(playerId, loc);
-                                }
-                            }
-                            return loc;
+                            return rs.getString("original_location");
                         }
                     }
                 }
@@ -448,11 +418,6 @@ public class StorageManager {
      * 隔離プレイヤーのインベントリバックアップを取得 (非同期)
      */
     public CompletableFuture<String> getInventoryBackupAsync(UUID playerId) {
-        if (inventoryCache.containsKey(playerId)) {
-            return CompletableFuture.completedFuture(inventoryCache.get(playerId));
-        }
-
-        long startTime = System.nanoTime();
         return CompletableFuture.supplyAsync(() -> {
             try {
                 String sql = "SELECT inventory_backup FROM jailed_players WHERE player_id = ?";
@@ -460,14 +425,7 @@ public class StorageManager {
                     ps.setString(1, playerId.toString());
                     try (ResultSet rs = ps.executeQuery()) {
                         if (rs.next()) {
-                            String backup = rs.getString("inventory_backup");
-                            if (backup != null) {
-                                Long removed = lastRemoveTime.get(playerId);
-                                if (removed == null || removed < startTime) {
-                                    inventoryCache.put(playerId, backup);
-                                }
-                            }
-                            return backup;
+                            return rs.getString("inventory_backup");
                         }
                     }
                 }
@@ -491,11 +449,6 @@ public class StorageManager {
      * 隔離プレイヤーの装備バックアップを取得 (非同期)
      */
     public CompletableFuture<String> getArmorBackupAsync(UUID playerId) {
-        if (armorCache.containsKey(playerId)) {
-            return CompletableFuture.completedFuture(armorCache.get(playerId));
-        }
-
-        long startTime = System.nanoTime();
         return CompletableFuture.supplyAsync(() -> {
             try {
                 String sql = "SELECT armor_backup FROM jailed_players WHERE player_id = ?";
@@ -503,14 +456,7 @@ public class StorageManager {
                     ps.setString(1, playerId.toString());
                     try (ResultSet rs = ps.executeQuery()) {
                         if (rs.next()) {
-                            String backup = rs.getString("armor_backup");
-                            if (backup != null) {
-                                Long removed = lastRemoveTime.get(playerId);
-                                if (removed == null || removed < startTime) {
-                                    armorCache.put(playerId, backup);
-                                }
-                            }
-                            return backup;
+                            return rs.getString("armor_backup");
                         }
                     }
                 }

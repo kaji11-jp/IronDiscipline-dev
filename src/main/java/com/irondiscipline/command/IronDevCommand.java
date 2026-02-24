@@ -30,6 +30,11 @@ public class IronDevCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (!sender.hasPermission("iron.admin")) {
+            sender.sendMessage(ChatColor.RED + "権限がありません。");
+            return true;
+        }
+
         if (args.length == 0) {
             sendHelp(sender);
             return true;

@@ -170,7 +170,14 @@ public class RankManager {
      */
     public void loadPlayerCache(UUID playerId) {
         // 同期的に待機してキャッシュを確実にする (AsyncPlayerPreLoginEvent用)
-        getRankAsync(playerId).join();
+        try {
+            getRankAsync(playerId).get(5, java.util.concurrent.TimeUnit.SECONDS);
+        } catch (java.util.concurrent.TimeoutException e) {
+            plugin.getLogger().warning("Rank load timed out for " + playerId);
+            throw new RuntimeException("Rank loading timed out", e);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to load rank", e);
+        }
     }
 
     /**
