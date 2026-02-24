@@ -1,6 +1,6 @@
 name: IronDisciplineDev
 version: ${project.version}
-main: com.irondiscipline.IronDiscipline
+main: xyz.irondiscipline.IronDiscipline
 api-version: '1.20'
 folia-supported: true
 authors: [IronDiscipline Team]
