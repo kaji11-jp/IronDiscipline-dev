@@ -13,7 +13,7 @@ PLUGIN_DIR="/opt/minecraft/plugins"
 
 echo "========================================"
 echo "  [自動アップデート] IronDiscipline-dev"
-echo "  LuckPerms非依存版"
+echo "  Folia専用版"
 echo "========================================"
 
 # 1. 権限チェック

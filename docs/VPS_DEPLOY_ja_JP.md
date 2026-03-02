@@ -2,7 +2,7 @@
 
 # 汎用VPSデプロイガイド (Xserver, ConoHa, Linode等)
 
-> ⚡ **LuckPerms非依存版** - LuckPermsのインストールは不要です
+> ⚡ **Folia専用版** - Foliaサーバー向けの軍事/監獄RPプラグインです
 
 このプロジェクトは、Google Cloud Platform以外の一般的なVPS（Virtual Private Server）でも簡単に動作させることができます。
 
@@ -64,9 +64,9 @@ ssh root@<サーバーIP> "systemctl restart minecraft"
 curl -sL https://raw.githubusercontent.com/kaji11-jp/IronDiscipline-dev/main/scripts/update-server.sh | sudo bash
 ```
 
-## 5. 通常版からの移行
+## 5. 旧Paper+LuckPerms版からの移行
 
-LuckPerms版からデータを移行する場合は [移行ガイド](MIGRATION.md) を参照してください。
+旧バージョン（Paper+LuckPerms版）からのデータ移行は [移行ガイド](MIGRATION.md) を参照してください。
 
 ## 6. ポート開放 (必要に応じて)
 

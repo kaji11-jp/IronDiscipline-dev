@@ -24,7 +24,7 @@ echo [2/4] GCSバケットを作成中...
 call gsutil mb -l asia-northeast1 %BUCKET% 2>nul
 
 echo [3/4] ファイルをアップロード中...
-call gsutil cp target\IronDiscipline-1.1.0.jar %BUCKET%/plugins/
+call gsutil cp target\IronDiscipline-dev-2.0.0-dev.jar %BUCKET%/plugins/
 call gsutil cp plugins\IronDiscipline\config.yml %BUCKET%/plugins/IronDiscipline/
 
 echo [4/4] アップロード完了！
@@ -37,7 +37,7 @@ echo.
 echo バケット: %BUCKET%
 echo.
 echo GCEインスタンスで以下を実行:
-echo   gsutil cp %BUCKET%/plugins/IronDiscipline-1.1.0.jar /opt/minecraft/plugins/
+echo   gsutil cp %BUCKET%/plugins/IronDiscipline-dev-2.0.0-dev.jar /opt/minecraft/plugins/
 echo   sudo systemctl restart minecraft
 echo.
 

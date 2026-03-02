@@ -2,7 +2,10 @@
 
 # Migration Guide from LuckPerms
 
-Guide for migrating data from IronDiscipline standard version (LuckPerms dependent) to IronDiscipline-dev (LuckPerms independent).
+> ⚠️ **Note**: The old version (Paper+LuckPerms `IronDiscipline`) has been discontinued.
+> This guide is for migrating from the old version.
+
+Guide for migrating data from the old IronDiscipline version (LuckPerms dependent) to IronDiscipline-dev (Folia exclusive).
 
 ## Overview
 

@@ -2,7 +2,7 @@
 
 # IronDiscipline-dev GCP Bereitstellungsleitfaden
 
-> ⚡ **LuckPerms Unabhängige Version** - Keine LuckPerms Installation erforderlich
+> ⚡ **Folia Exklusiv** - Militär/Gefängnis-RP-Plugin für Folia-Server
 
 ## Voraussetzungen
 
@@ -35,7 +35,7 @@ gcloud compute instances create irondiscipline-mc \
     --image-project=ubuntu-os-cloud
 ```
 
-## Migration von Standardversion
+## Migration von alter Paper+LuckPerms Version
 
 ```
 /irondev migrate

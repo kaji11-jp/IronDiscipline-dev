@@ -2,7 +2,7 @@
 
 # IronDiscipline-dev GCP Deployment Guide
 
-> ⚡ **LuckPerms Independent Version** - No LuckPerms installation required
+> ⚡ **Folia Exclusive** - Military/prison RP plugin for Folia servers
 
 ## Prerequisites
 
@@ -61,9 +61,9 @@ Connect in Minecraft to `<IP>:25565`!
 
 ---
 
-## Migration from Standard Version
+## Migration from Old Paper+LuckPerms Version
 
-To migrate from existing LuckPerms server:
+To migrate from the old Paper+LuckPerms version:
 
 ```bash
 gcloud compute ssh irondiscipline-mc --zone=asia-northeast1-b

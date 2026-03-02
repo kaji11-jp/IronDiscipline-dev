@@ -1,17 +1,17 @@
 #!/bin/bash
-# Paper MCサーバー起動スクリプト
+# Folia サーバー起動スクリプト
 
 cd /minecraft
 
-# Paper JARがなければダウンロード
-if [ ! -f "paper.jar" ]; then
-    echo "Paper MCをダウンロード中..."
-    ./download-paper.sh
+# Folia JARがなければダウンロード
+if [ ! -f "folia.jar" ]; then
+    echo "Folia をダウンロード中..."
+    ./download-folia.sh
 fi
 
 # サーバー起動
 echo "==================================="
-echo "  IronDiscipline Minecraft Server"
+echo "  IronDiscipline Folia Server"
 echo "  Memory: ${MEMORY}"
 echo "==================================="
 
@@ -36,4 +36,4 @@ exec java -Xms${MEMORY} -Xmx${MEMORY} \
     -XX:MaxTenuringThreshold=1 \
     -Dusing.aikars.flags=https://mcflags.emc.gs \
     -Daikars.new.flags=true \
-    -jar paper.jar nogui
+    -jar folia.jar nogui

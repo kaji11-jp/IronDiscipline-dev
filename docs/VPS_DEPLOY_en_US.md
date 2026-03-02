@@ -2,7 +2,7 @@
 
 # Generic VPS Deployment Guide (Xserver, ConoHa, Linode, etc.)
 
-> ⚡ **LuckPerms Independent Version** - No LuckPerms installation required
+> ⚡ **Folia Exclusive** - Military/prison RP plugin for Folia servers
 
 This project can easily run on common VPS providers other than Google Cloud Platform.
 
@@ -60,9 +60,9 @@ Update to latest version with one command:
 curl -sL https://raw.githubusercontent.com/kaji11-jp/IronDiscipline-dev/main/scripts/update-server.sh | sudo bash
 ```
 
-## 5. Migration from Standard Version
+## 5. Migration from Old Paper+LuckPerms Version
 
-See [Migration Guide](MIGRATION_en_US.md) for migrating from LuckPerms version.
+See [Migration Guide](MIGRATION_en_US.md) for migrating from the old Paper+LuckPerms version.
 
 ## 6. Port Forwarding
 

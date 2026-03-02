@@ -1,6 +1,9 @@
 # LuckPermsからの移行ガイド
 
-IronDiscipline通常版（LuckPerms依存版）からIronDiscipline-dev（LuckPerms非依存版）へのデータ移行手順です。
+> ⚠️ **注意**: 旧バージョン（Paper+LuckPerms版の `IronDiscipline`）は廃止されました。
+> このガイドは旧バージョンからの移行用です。
+
+IronDiscipline旧版（LuckPerms依存版）からIronDiscipline-dev（Folia専用版）へのデータ移行手順です。
 
 ## 概要
 

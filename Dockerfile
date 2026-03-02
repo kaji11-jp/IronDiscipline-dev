@@ -2,11 +2,10 @@
 FROM eclipse-temurin:21-jre-alpine
 
 LABEL maintainer="IronDiscipline"
-LABEL description="Minecraft Server with IronDiscipline Plugin"
+LABEL description="Minecraft Folia Server with IronDiscipline Plugin"
 
 # 環境変数
-ENV MINECRAFT_VERSION=1.21.1
-ENV PAPER_BUILD=latest
+ENV MINECRAFT_VERSION=1.20.4
 ENV MEMORY=2G
 ENV SERVER_PORT=25565
 
@@ -17,12 +16,11 @@ WORKDIR /minecraft
 RUN apk add --no-cache curl jq
 
 # サーバーJARダウンロードスクリプト
-COPY scripts/download-paper.sh /minecraft/
-RUN chmod +x /minecraft/download-paper.sh
+COPY scripts/download-folia.sh /minecraft/
+RUN chmod +x /minecraft/download-folia.sh
 
 # プラグインコピー
-COPY target/IronDiscipline-1.1.0.jar /minecraft/plugins/
-COPY plugins/LuckPerms*.jar /minecraft/plugins/
+COPY target/IronDiscipline-dev-2.0.0-dev.jar /minecraft/plugins/
 
 # 設定ファイル
 COPY docker/server.properties /minecraft/
@@ -33,7 +31,7 @@ EXPOSE 25565/tcp
 EXPOSE 25565/udp
 
 # ボリューム（永続化）
-VOLUME ["/minecraft/world", "/minecraft/plugins/IronDiscipline", "/minecraft/plugins/LuckPerms"]
+VOLUME ["/minecraft/world", "/minecraft/plugins/IronDiscipline"]
 
 # 起動
 COPY scripts/start.sh /minecraft/

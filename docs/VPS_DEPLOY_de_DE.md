@@ -2,7 +2,7 @@
 
 # Allgemeiner VPS Bereitstellungsleitfaden
 
-> ⚡ **LuckPerms Unabhängige Version** - Keine LuckPerms Installation erforderlich
+> ⚡ **Folia Exklusiv** - Militär/Gefängnis-RP-Plugin für Folia-Server
 
 ## Unterstützte VPS
 - **Hetzner** (Deutschland - schnell)

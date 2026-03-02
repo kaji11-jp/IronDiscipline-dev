@@ -2,7 +2,7 @@
 
 # Guía de Implementación en VPS Genérico
 
-> ⚡ **Versión Independiente de LuckPerms** - No requiere instalación de LuckPerms
+> ⚡ **Exclusivo para Folia** - Plugin de RP militar/prisión para servidores Folia
 
 ## VPS Compatibles
 - **Linode / DigitalOcean / Vultr** (Internacional)

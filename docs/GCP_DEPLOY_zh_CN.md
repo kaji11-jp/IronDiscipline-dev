@@ -2,7 +2,7 @@
 
 # IronDiscipline-dev GCP 部署指南
 
-> ⚡ **不依赖LuckPerms版本** - 无需安装LuckPerms
+> ⚡ **Folia专用版** - 适用于Folia服务器的军事/监狱RP插件
 
 ## 前提条件
 
@@ -35,7 +35,7 @@ gcloud compute instances create irondiscipline-mc \
     --image-project=ubuntu-os-cloud
 ```
 
-## 从标准版迁移
+## 从旧Paper+LuckPerms版迁移
 
 ```
 /irondev migrate

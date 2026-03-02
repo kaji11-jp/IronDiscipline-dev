@@ -2,7 +2,7 @@
 
 # 通用VPS部署指南
 
-> ⚡ **不依赖LuckPerms版本** - 无需安装LuckPerms
+> ⚡ **Folia专用版** - 适用于Folia服务器的军事/监狱RP插件
 
 ## 支持的VPS
 - **阿里云 / 腾讯云** (中国)

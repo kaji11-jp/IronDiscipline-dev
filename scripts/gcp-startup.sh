@@ -7,7 +7,7 @@ set -e
 exec > >(tee /var/log/minecraft-setup.log)
 exec 2>&1
 
-echo "====== Minecraft Server Setup ======"
+echo "====== IronDiscipline Folia Server Setup ======"
 
 # パッケージインストール
 apt-get update
@@ -20,20 +20,20 @@ useradd -r -m -d /opt/minecraft minecraft || true
 mkdir -p /opt/minecraft/{plugins,world}
 cd /opt/minecraft
 
-# Paper MCダウンロード
-VERSION="1.21.1"
-echo "Paper MC $VERSION をダウンロード中..."
-RESPONSE=$(curl -s "https://api.papermc.io/v2/projects/paper/versions/$VERSION/builds")
+# Folia ダウンロード
+VERSION="1.20.4"
+echo "Folia $VERSION をダウンロード中..."
+RESPONSE=$(curl -s "https://api.papermc.io/v2/projects/folia/versions/$VERSION/builds")
 BUILD=$(echo "$RESPONSE" | jq -r '.builds[-1].build')
 HASH=$(echo "$RESPONSE" | jq -r '.builds[-1].downloads.application.sha256')
 
 if [ "$BUILD" == "null" ] || [ -z "$BUILD" ]; then
-    echo "Error: Paper MC build info fetch failed."
+    echo "Error: Folia build info fetch failed for version $VERSION."
     exit 1
 fi
 
-curl -o paper.jar -L "https://api.papermc.io/v2/projects/paper/versions/$VERSION/builds/$BUILD/downloads/paper-$VERSION-$BUILD.jar"
-echo "$HASH paper.jar" | sha256sum -c -
+curl -o folia.jar -L "https://api.papermc.io/v2/projects/folia/versions/$VERSION/builds/$BUILD/downloads/folia-$VERSION-$BUILD.jar"
+echo "$HASH folia.jar" | sha256sum -c -
 
 # EULA同意
 echo "eula=true" > eula.txt
@@ -51,13 +51,6 @@ view-distance=10
 simulation-distance=8
 EOF
 
-# LuckPermsダウンロード
-echo "LuckPerms をダウンロード中..."
-LUCKPERMS_URL="https://download.luckperms.net/1552/bukkit/loader/LuckPerms-Bukkit-5.4.145.jar"
-LUCKPERMS_HASH="4f0d42a3f78a1984a02523555fc9a78583ff2c2dee4cc9a218bd2e8323f47aca"
-curl -o plugins/LuckPerms.jar -L "$LUCKPERMS_URL"
-echo "$LUCKPERMS_HASH plugins/LuckPerms.jar" | sha256sum -c -
-
 # IronDiscipline.jar をGCSからダウンロード (See docs/GCP_DEPLOY.md)
 echo "IronDiscipline をダウンロード中..."
 gsutil cp gs://irondiscipline-server/IronDiscipline-latest.jar plugins/
@@ -68,13 +61,34 @@ chown -R minecraft:minecraft /opt/minecraft
 # systemdサービス作成
 cat > /etc/systemd/system/minecraft.service << 'EOF'
 [Unit]
-Description=Minecraft Server
+Description=Minecraft Folia Server (IronDiscipline)
 After=network.target
 
 [Service]
 User=minecraft
 WorkingDirectory=/opt/minecraft
-ExecStart=/usr/bin/java -Xms3G -Xmx3G -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 -jar paper.jar nogui
+ExecStart=/usr/bin/java -Xms3G -Xmx3G \
+    -XX:+UseG1GC \
+    -XX:+ParallelRefProcEnabled \
+    -XX:MaxGCPauseMillis=200 \
+    -XX:+UnlockExperimentalVMOptions \
+    -XX:+DisableExplicitGC \
+    -XX:+AlwaysPreTouch \
+    -XX:G1NewSizePercent=30 \
+    -XX:G1MaxNewSizePercent=40 \
+    -XX:G1HeapRegionSize=8M \
+    -XX:G1ReservePercent=20 \
+    -XX:G1HeapWastePercent=5 \
+    -XX:G1MixedGCCountTarget=4 \
+    -XX:InitiatingHeapOccupancyPercent=15 \
+    -XX:G1MixedGCLiveThresholdPercent=90 \
+    -XX:G1RSetUpdatingPauseTimePercent=5 \
+    -XX:SurvivorRatio=32 \
+    -XX:+PerfDisableSharedMem \
+    -XX:MaxTenuringThreshold=1 \
+    -Dusing.aikars.flags=https://mcflags.emc.gs \
+    -Daikars.new.flags=true \
+    -jar folia.jar nogui
 ExecStop=/bin/kill -SIGTERM $MAINPID
 Restart=on-failure
 RestartSec=10

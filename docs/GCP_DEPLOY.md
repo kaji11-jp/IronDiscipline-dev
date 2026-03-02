@@ -2,7 +2,7 @@
 
 # IronDiscipline-dev GCP デプロイガイド
 
-> ⚡ **LuckPerms非依存版** - LuckPermsのインストールは不要です
+> ⚡ **Folia専用版** - Foliaサーバー向けの軍事/監獄RPプラグインです
 
 ## 前提条件
 
@@ -61,9 +61,9 @@ Minecraftで `<IP>:25565` に接続！
 
 ---
 
-## 通常版からの移行
+## 旧Paper+LuckPerms版からの移行
 
-既存のLuckPermsサーバーからデータを移行する場合：
+旧バージョン（Paper+LuckPerms版）からのデータ移行：
 
 ```bash
 gcloud compute ssh irondiscipline-mc --zone=asia-northeast1-b
