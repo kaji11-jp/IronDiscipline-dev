@@ -45,6 +45,7 @@ public class AddonCommand {
             case "list", "ls" -> handleList(sender);
             case "certified", "cert", "available", "av" -> handleCertified(sender);
             case "remove", "rm", "uninstall" -> handleRemove(sender, args);
+            case "refresh" -> handleRefresh(sender);
             default -> showAddonHelp(sender);
         }
     }
@@ -57,7 +58,7 @@ public class AddonCommand {
 
         if (args.length == 2) {
             String prefix = args[1].toLowerCase();
-            for (String sub : new String[]{"install", "list", "certified", "remove"}) {
+            for (String sub : new String[]{"install", "list", "certified", "remove", "refresh"}) {
                 if (sub.startsWith(prefix)) {
                     completions.add(sub);
                 }
@@ -177,6 +178,15 @@ public class AddonCommand {
         });
     }
 
+    private void handleRefresh(CommandSender sender) {
+        sender.sendMessage(plugin.getConfigManager().getMessage("addon_refreshing"));
+        plugin.getAddonManager().forceRefreshRegistry().thenRun(() -> {
+            int count = plugin.getAddonManager().getCertifiedAddons().size();
+            sender.sendMessage(plugin.getConfigManager().getMessage("addon_refreshed",
+                    "%count%", String.valueOf(count)));
+        });
+    }
+
     private void sendResult(CommandSender sender, InstallResult result) {
         // Folia ではメインスレッド以外からメッセージ送信可能（CommandSender.sendMessage はスレッドセーフ）
         if (result.success()) {
@@ -198,5 +208,7 @@ public class AddonCommand {
                 "&e/iron addon certified &7- 公認アドオン一覧"));
         sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
                 "&e/iron addon remove <id> &7- アドオンをアンインストール"));
+        sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                "&e/iron addon refresh &7- 公認レジストリを再取得"));
     }
 }

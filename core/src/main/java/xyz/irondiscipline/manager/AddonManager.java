@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.logging.Level;
@@ -18,61 +19,173 @@ import java.util.logging.Level;
 /**
  * IrDi アドオンのインストール・管理を行うマネージャー。
  * <p>
- * GitHub Releases / 直接URLから JAR をダウンロードし、{@code irdi-addon.yml} マーカーで
- * IrDi アドオンであることを検証してからインストールします。
+ * 公認アドオンのレジストリは
+ * {@code https://www.irondiscipline.xyz/addons.php?format=json&filter=released}
+ * から動的に取得され、1時間キャッシュされます。
+ * 新しい公認アドオンを追加する際はWebサイト側の {@code $addons} 配列にエントリを追加するだけで
+ * プラグイン側のコード変更は不要です。
  * </p>
  *
  * <h3>インストール経路</h3>
  * <ol>
  *   <li><b>公認レジストリ</b> — IrDi チームが審査・認可したアドオン一覧から自動取得</li>
  *   <li><b>GitHub リポジトリ</b> — {@code owner/repo} 形式で指定し Releases から取得</li>
- *   <li><b>直接URL</b> — JAR の URL を直接指定してダウンロード（非公認）</li>
+ *   <li><b>直接URL</b> — JAR の URL を直接指定してダウンロード（非公認も可）</li>
  * </ol>
- *
- * <h3>検証</h3>
- * <p>すべての経路で {@code irdi-addon.yml} の存在を検証します。
- * 公認アドオンはレジストリに登録された ID と一致するかも確認します。</p>
  */
 public class AddonManager {
 
     private final IronDiscipline plugin;
     private final File pluginsDir;
 
-    /** IrDi チーム公認アドオンレジストリ（id → GitHub owner/repo） */
-    private static final Map<String, AddonRegistryEntry> CERTIFIED_ADDONS = new LinkedHashMap<>();
+    /** 公認レジストリ API URL */
+    private static final String REGISTRY_URL = "https://www.irondiscipline.xyz/addons.php?format=json&filter=released";
 
-    static {
-        CERTIFIED_ADDONS.put("economy", new AddonRegistryEntry(
-                "irdi-economy",
-                "IrDi-Economy",
-                "irondiscipline/IrDi-Economy",
-                "お金の概念と階級別給与システム"
-        ));
-        // 将来追加予定:
-        // CERTIFIED_ADDONS.put("territory", new AddonRegistryEntry(...));
-        // CERTIFIED_ADDONS.put("vehicles", new AddonRegistryEntry(...));
-    }
+    /** キャッシュ有効時間（1時間） */
+    private static final long CACHE_TTL_MS = 60 * 60 * 1000L;
+
+    /** 公認アドオンキャッシュ（short_key → エントリ） */
+    private final Map<String, AddonRegistryEntry> certifiedCache = new ConcurrentHashMap<>();
+
+    /** キャッシュ最終更新時刻 */
+    private volatile long cacheTimestamp = 0;
 
     public AddonManager(IronDiscipline plugin) {
         this.plugin = plugin;
         this.pluginsDir = plugin.getDataFolder().getParentFile(); // server/plugins/
+
+        // 起動時にバックグラウンドでレジストリ取得
+        CompletableFuture.runAsync(this::refreshRegistry);
     }
 
-    // ========== 公認レジストリ ==========
+    // ========== 公認レジストリ（Web API から動的取得） ==========
 
     /**
      * IrDi チーム公認アドオンの一覧を返します。
+     * キャッシュが期限切れの場合はバックグラウンドで更新をトリガーします。
      */
     public Map<String, AddonRegistryEntry> getCertifiedAddons() {
-        return Collections.unmodifiableMap(CERTIFIED_ADDONS);
+        if (isCacheExpired()) {
+            CompletableFuture.runAsync(this::refreshRegistry);
+        }
+        return Collections.unmodifiableMap(certifiedCache);
     }
 
     /**
      * アドオン ID が公認レジストリに登録されているかを判定します。
      */
     public boolean isCertified(String addonId) {
-        return CERTIFIED_ADDONS.values().stream()
+        if (isCacheExpired()) {
+            CompletableFuture.runAsync(this::refreshRegistry);
+        }
+        return certifiedCache.values().stream()
                 .anyMatch(e -> e.id().equalsIgnoreCase(addonId));
+    }
+
+    /**
+     * レジストリキャッシュを強制リフレッシュします。
+     */
+    public CompletableFuture<Void> forceRefreshRegistry() {
+        return CompletableFuture.runAsync(this::refreshRegistry);
+    }
+
+    private boolean isCacheExpired() {
+        return System.currentTimeMillis() - cacheTimestamp > CACHE_TTL_MS;
+    }
+
+    /**
+     * Webサイトの JSON API から公認アドオンレジストリを取得してキャッシュを更新します。
+     */
+    private void refreshRegistry() {
+        try {
+            plugin.getLogger().info("公認アドオンレジストリを取得中...");
+
+            HttpURLConnection conn = (HttpURLConnection) new URL(REGISTRY_URL).openConnection();
+            conn.setRequestProperty("User-Agent", "IronDiscipline-AddonManager");
+            conn.setRequestProperty("Accept", "application/json");
+            conn.setConnectTimeout(10000);
+            conn.setReadTimeout(10000);
+
+            if (conn.getResponseCode() != 200) {
+                plugin.getLogger().warning("レジストリの取得に失敗しました (HTTP " + conn.getResponseCode() + ")");
+                conn.disconnect();
+                return;
+            }
+
+            String json = readStream(conn.getInputStream());
+            conn.disconnect();
+
+            // "addons" 配列をパース
+            Map<String, AddonRegistryEntry> newCache = parseRegistry(json);
+
+            if (!newCache.isEmpty()) {
+                certifiedCache.clear();
+                certifiedCache.putAll(newCache);
+                cacheTimestamp = System.currentTimeMillis();
+                plugin.getLogger().info("公認レジストリ更新完了: " + newCache.size() + " 件のアドオン");
+            }
+
+        } catch (Exception e) {
+            plugin.getLogger().log(Level.WARNING, "公認レジストリの取得に失敗しました", e);
+        }
+    }
+
+    /**
+     * JSON レスポンスから公認アドオン一覧をパースします。
+     * <pre>
+     * {
+     *   "addons": [
+     *     { "id": "irdi-economy", "name": "IrDi-Economy", "short_key": "economy",
+     *       "github": "kaji11-jp/IrDi-Economy", "description": "...", ... },
+     *     ...
+     *   ]
+     * }
+     * </pre>
+     */
+    private Map<String, AddonRegistryEntry> parseRegistry(String json) {
+        Map<String, AddonRegistryEntry> result = new LinkedHashMap<>();
+
+        // "addons" 配列を探す
+        int addonsIdx = json.indexOf("\"addons\"");
+        if (addonsIdx < 0) return result;
+
+        // 各アドオンオブジェクト { ... } を順に抽出
+        int pos = json.indexOf('[', addonsIdx);
+        if (pos < 0) return result;
+
+        while (true) {
+            int objStart = json.indexOf('{', pos);
+            if (objStart < 0) break;
+
+            int objEnd = json.indexOf('}', objStart);
+            if (objEnd < 0) break;
+
+            String obj = json.substring(objStart, objEnd + 1);
+
+            String id = extractJsonValue(obj, "id");
+            String name = extractJsonValue(obj, "name");
+            String shortKey = extractJsonValue(obj, "short_key");
+            String github = extractJsonValue(obj, "github");
+            String description = extractJsonValue(obj, "description");
+
+            if (id != null && shortKey != null && github != null) {
+                result.put(shortKey, new AddonRegistryEntry(
+                        id,
+                        name != null ? name : id,
+                        github,
+                        description != null ? description : ""
+                ));
+            }
+
+            pos = objEnd + 1;
+
+            // 配列の終端チェック
+            int nextBrace = json.indexOf('{', pos);
+            int arrayEnd = json.indexOf(']', pos);
+            if (arrayEnd >= 0 && (nextBrace < 0 || arrayEnd < nextBrace)) break;
+        }
+
+        return result;
     }
 
     // ========== インストール ==========
@@ -84,11 +197,21 @@ public class AddonManager {
      * @return 結果メッセージ
      */
     public CompletableFuture<InstallResult> installCertified(String addonId) {
-        AddonRegistryEntry entry = CERTIFIED_ADDONS.get(addonId.toLowerCase());
+        AddonRegistryEntry entry = certifiedCache.get(addonId.toLowerCase());
         if (entry == null) {
-            return CompletableFuture.completedFuture(
-                    new InstallResult(false, "不明なアドオン: " + addonId
-                            + " (利用可能: " + String.join(", ", CERTIFIED_ADDONS.keySet()) + ")"));
+            // キャッシュにない場合、リフレッシュしてリトライ
+            return CompletableFuture.supplyAsync(() -> {
+                refreshRegistry();
+                AddonRegistryEntry retried = certifiedCache.get(addonId.toLowerCase());
+                if (retried == null) {
+                    return new InstallResult(false, "不明なアドオン: " + addonId
+                            + " (利用可能: " + String.join(", ", certifiedCache.keySet()) + ")");
+                }
+                return null; // リトライ成功 → 後続で処理
+            }).thenCompose(result -> {
+                if (result != null) return CompletableFuture.completedFuture(result);
+                return installFromGitHub(certifiedCache.get(addonId.toLowerCase()).githubRepo());
+            });
         }
         return installFromGitHub(entry.githubRepo());
     }

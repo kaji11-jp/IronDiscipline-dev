@@ -243,6 +243,8 @@ addon_failed: "&c%message%"
 addon_list_header: "&6=== インストール済み IrDi アドオン (%count%) ==="
 addon_list_empty: "&7IrDi アドオンはインストールされていません。"
 addon_certified_header: "&6=== 公認 IrDi アドオン (%count%) ==="
+addon_refreshing: "&e公認レジストリを再取得中..."
+addon_refreshed: "&a公認レジストリを更新しました。(%count% 件)"
 addon_help_header: "&6=== アドオン管理 ==="
 
 # JailCommand

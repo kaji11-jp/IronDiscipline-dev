@@ -243,6 +243,8 @@ addon_failed: "&c%message%"
 addon_list_header: "&6=== Installed IrDi Addons (%count%) ==="
 addon_list_empty: "&7No IrDi addons installed."
 addon_certified_header: "&6=== Certified IrDi Addons (%count%) ==="
+addon_refreshing: "&eRefreshing certified registry..."
+addon_refreshed: "&aCertified registry updated. (%count% addons)"
 addon_help_header: "&6=== Addon Management ==="
 
 # JailCommand
