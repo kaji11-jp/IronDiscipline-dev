@@ -70,25 +70,16 @@ public enum Rank {
      */
     public Rank getNextRank() {
         Rank[] ranks = values();
-        for (int i = 0; i < ranks.length - 1; i++) {
-            if (ranks[i] == this) {
-                return ranks[i + 1];
-            }
-        }
-        return null; // 最高階級
+        int next = ordinal() + 1;
+        return next < ranks.length ? ranks[next] : null;
     }
 
     /**
      * 前の階級を取得 (降格)
      */
     public Rank getPreviousRank() {
-        Rank[] ranks = values();
-        for (int i = 1; i < ranks.length; i++) {
-            if (ranks[i] == this) {
-                return ranks[i - 1];
-            }
-        }
-        return null; // 最低階級
+        int prev = ordinal() - 1;
+        return prev >= 0 ? values()[prev] : null;
     }
 
     /**

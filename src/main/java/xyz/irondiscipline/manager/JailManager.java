@@ -28,7 +28,6 @@ public class JailManager {
     
     // 隔離中プレイヤーID (高速チェック用キャッシュ)
     private final Set<UUID> knownJailedIds = ConcurrentHashMap.newKeySet();
-    private volatile boolean cacheLoaded = false;
 
     public JailManager(IronDiscipline plugin) {
         this.plugin = plugin;
@@ -370,7 +369,6 @@ public class JailManager {
     private void loadJailedPlayers() {
         plugin.getStorageManager().getJailedPlayerIdsAsync().thenAccept(ids -> {
             knownJailedIds.addAll(ids);
-            cacheLoaded = true;
             plugin.getLogger().info("隔離プレイヤーリストをロードしました: " + ids.size() + "件");
         });
     }

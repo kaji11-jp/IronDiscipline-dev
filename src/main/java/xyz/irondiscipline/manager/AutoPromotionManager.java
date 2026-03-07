@@ -34,7 +34,7 @@ public class AutoPromotionManager {
 
         int intervalSeconds = plugin.getConfigManager().getTimeBasedPromotionInterval();
 
-        task = plugin.getTaskScheduler().runGlobalTimer(() -> checkPromotions(), intervalSeconds * 20L,
+        task = plugin.getTaskScheduler().runGlobalTimer(this::checkPromotions, intervalSeconds * 20L,
                 intervalSeconds * 20L);
     }
 

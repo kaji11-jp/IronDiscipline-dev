@@ -286,9 +286,6 @@ public class StorageManager {
     // ===== Jail Data =====
 
     /**
-     * 隔離データを保存
-     */
-    /**
      * 隔離データを保存 (インベントリバックアップ付き)
      */
     public CompletableFuture<Boolean> saveJailedPlayerAsync(UUID playerId, String playerName, String reason,
@@ -339,25 +336,6 @@ public class StorageManager {
     }
 
     /**
-     * @deprecated Use saveJailedPlayerAsync instead
-     */
-    @Deprecated
-    public void saveJailedPlayer(UUID playerId, String playerName, String reason,
-            UUID jailedBy, String originalLocation,
-            String inventoryBackup, String armorBackup) {
-        saveJailedPlayerAsync(playerId, playerName, reason, jailedBy, originalLocation, inventoryBackup, armorBackup);
-    }
-
-    /**
-     * @deprecated Use the version with inventory backup instead
-     */
-    @Deprecated
-    public void saveJailedPlayer(UUID playerId, String playerName, String reason,
-            UUID jailedBy, String originalLocation) {
-        saveJailedPlayer(playerId, playerName, reason, jailedBy, originalLocation, null, null);
-    }
-
-    /**
      * 隔離データを削除
      */
     public CompletableFuture<Void> removeJailedPlayerAsync(UUID playerId) {
@@ -372,26 +350,6 @@ public class StorageManager {
                 plugin.getLogger().log(Level.WARNING, plugin.getConfigManager().getRawMessage("log_delete_failed_jail"), e);
             }
         }, dbExecutor);
-    }
-
-    /**
-     * @deprecated Use removeJailedPlayerAsync instead
-     */
-    @Deprecated
-    public void removeJailedPlayer(UUID playerId) {
-        removeJailedPlayerAsync(playerId);
-    }
-
-    /**
-     * 隔離プレイヤーの元座標を取得 (同期 - 非推奨)
-     * @deprecated Use getOriginalLocationAsync instead
-     */
-    @Deprecated
-    public String getOriginalLocation(UUID playerId) {
-        if (isPrimaryThread()) {
-            plugin.getLogger().warning("Blocking database call on main thread: getOriginalLocation. Use getOriginalLocationAsync instead.");
-        }
-        return getOriginalLocationAsync(playerId).join();
     }
 
     protected boolean isPrimaryThread() {
@@ -425,15 +383,6 @@ public class StorageManager {
     }
 
     /**
-     * 隔離プレイヤーのインベントリバックアップを取得 (同期 - 非推奨)
-     * @deprecated Use getInventoryBackupAsync instead
-     */
-    @Deprecated
-    public String getInventoryBackup(UUID playerId) {
-        return getInventoryBackupAsync(playerId).join();
-    }
-
-    /**
      * 隔離プレイヤーのインベントリバックアップを取得 (非同期)
      */
     public CompletableFuture<String> getInventoryBackupAsync(UUID playerId) {
@@ -456,15 +405,6 @@ public class StorageManager {
     }
 
     /**
-     * 隔離プレイヤーの装備バックアップを取得 (同期 - 非推奨)
-     * @deprecated Use getArmorBackupAsync instead
-     */
-    @Deprecated
-    public String getArmorBackup(UUID playerId) {
-        return getArmorBackupAsync(playerId).join();
-    }
-
-    /**
      * 隔離プレイヤーの装備バックアップを取得 (非同期)
      */
     public CompletableFuture<String> getArmorBackupAsync(UUID playerId) {
@@ -484,15 +424,6 @@ public class StorageManager {
             }
             return null;
         }, dbExecutor);
-    }
-
-    /**
-     * 隔離中かどうか確認 (同期 - 非推奨)
-     * @deprecated Use isJailedAsync instead
-     */
-    @Deprecated
-    public boolean isJailed(UUID playerId) {
-        return isJailedAsync(playerId).join();
     }
 
     /**
