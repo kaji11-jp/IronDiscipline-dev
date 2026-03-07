@@ -5,16 +5,27 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>xyz.irondiscipline</groupId>
-    <artifactId>IronDiscipline-dev</artifactId>
+    <artifactId>IronDiscipline-parent</artifactId>
     <version>2.0.0-dev</version>
-    <packaging>jar</packaging>
+    <packaging>pom</packaging>
 
-    <name>IronDisciplineDev</name>
+    <name>IronDiscipline Parent</name>
     <description>鉄の規律 - 軍事RP向け規律システムプラグイン（Folia専用版）</description>
+
+    <modules>
+        <module>api</module>
+        <module>core</module>
+    </modules>
 
     <properties>
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <paper.version>1.20.4-R0.1-SNAPSHOT</paper.version>
+        <jda.version>5.0.0-beta.18</jda.version>
+        <h2.version>2.2.224</h2.version>
+        <morepaperlib.version>0.4.4</morepaperlib.version>
+        <junit.version>5.10.1</junit.version>
+        <mockito.version>5.10.0</mockito.version>
     </properties>
 
     <repositories>
@@ -36,125 +47,105 @@
         </repository>
     </repositories>
 
-    <dependencies>
-        <!-- Paper API -->
-        <dependency>
-            <groupId>io.papermc.paper</groupId>
-            <artifactId>paper-api</artifactId>
-            <version>1.20.4-R0.1-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
+    <dependencyManagement>
+        <dependencies>
+            <!-- IronDiscipline API -->
+            <dependency>
+                <groupId>xyz.irondiscipline</groupId>
+                <artifactId>IronDiscipline-API</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
-        <!-- LuckPerms API (移行時のみ使用 - オプション) -->
-        <dependency>
-            <groupId>net.luckperms</groupId>
-            <artifactId>api</artifactId>
-            <version>5.4</version>
-            <scope>provided</scope>
-            <optional>true</optional>
-        </dependency>
+            <!-- Paper API -->
+            <dependency>
+                <groupId>io.papermc.paper</groupId>
+                <artifactId>paper-api</artifactId>
+                <version>${paper.version}</version>
+                <scope>provided</scope>
+            </dependency>
 
-        <!-- H2 Database (embedded) -->
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <version>2.2.224</version>
-        </dependency>
+            <!-- LuckPerms API (移行時のみ使用 - オプション) -->
+            <dependency>
+                <groupId>net.luckperms</groupId>
+                <artifactId>api</artifactId>
+                <version>5.4</version>
+                <scope>provided</scope>
+            </dependency>
 
-        <!-- JDA for Discord -->
-        <dependency>
-            <groupId>net.dv8tion</groupId>
-            <artifactId>JDA</artifactId>
-            <version>5.0.0-beta.18</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>club.minnced</groupId>
-                    <artifactId>opus-java</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+            <!-- H2 Database (embedded) -->
+            <dependency>
+                <groupId>com.h2database</groupId>
+                <artifactId>h2</artifactId>
+                <version>${h2.version}</version>
+            </dependency>
 
-        <!-- Testing -->
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <version>5.10.1</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>5.10.0</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-junit-jupiter</artifactId>
-            <version>5.10.0</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>space.arim.morepaperlib</groupId>
-            <artifactId>morepaperlib</artifactId>
-            <version>0.4.4</version>
-            <scope>compile</scope>
-        </dependency>
-    </dependencies>
+            <!-- JDA for Discord -->
+            <dependency>
+                <groupId>net.dv8tion</groupId>
+                <artifactId>JDA</artifactId>
+                <version>${jda.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>club.minnced</groupId>
+                        <artifactId>opus-java</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <!-- MorePaperLib -->
+            <dependency>
+                <groupId>space.arim.morepaperlib</groupId>
+                <artifactId>morepaperlib</artifactId>
+                <version>${morepaperlib.version}</version>
+            </dependency>
+
+            <!-- Testing -->
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter</artifactId>
+                <version>${junit.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>${mockito.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-junit-jupiter</artifactId>
+                <version>${mockito.version}</version>
+                <scope>test</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version>
-                <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                    <encoding>UTF-8</encoding>
-                    <showDeprecation>true</showDeprecation>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.2.5</version>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.5.1</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <relocations>
-                                <relocation>
-                                    <pattern>org.h2</pattern>
-                                    <shadedPattern>xyz.irondiscipline.lib.h2</shadedPattern>
-                                </relocation>
-                            </relocations>
-                            <minimizeJar>true</minimizeJar>
-                            <filters>
-                                <filter>
-                                    <artifact>com.h2database:h2</artifact>
-                                    <includes>
-                                        <include>**</include>
-                                    </includes>
-                                </filter>
-                            </filters>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>true</filtering>
-            </resource>
-        </resources>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.11.0</version>
+                    <configuration>
+                        <source>${java.version}</source>
+                        <target>${java.version}</target>
+                        <encoding>UTF-8</encoding>
+                        <showDeprecation>true</showDeprecation>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>3.2.5</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-shade-plugin</artifactId>
+                    <version>3.5.1</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
 </project>
