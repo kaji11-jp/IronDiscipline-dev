@@ -221,9 +221,13 @@ public class StorageManager implements IKillLogProvider {
 
     private List<KillLog> getKillLogs(UUID playerId, int limit) throws SQLException {
         List<KillLog> logs = new ArrayList<>();
+        // UNION を使用してインデックスを効率的に利用する
         String sql = """
-                    SELECT * FROM kill_logs
-                    WHERE killer_id = ? OR victim_id = ?
+                    SELECT * FROM (
+                        SELECT * FROM kill_logs WHERE killer_id = ?
+                        UNION
+                        SELECT * FROM kill_logs WHERE victim_id = ?
+                    ) t
                     ORDER BY timestamp DESC
                     LIMIT ?
                 """;

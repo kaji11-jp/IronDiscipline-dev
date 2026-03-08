@@ -88,6 +88,16 @@ public final class IronDisciplineAPI {
         return getService(ITerritoryProvider.class);
     }
 
+    /**
+     * IronDiscipline Core がロードされ、主要プロバイダが利用可能かどうかを返します。
+     * アドオンの初期化処理で呼び出す前にこのメソッドで確認することを推奨します。
+     *
+     * @return Core がロード済みで IRankProvider が利用可能な場合 true
+     */
+    public static boolean isAvailable() {
+        return getService(IRankProvider.class) != null;
+    }
+
     private static <T> T getService(Class<T> clazz) {
         return Bukkit.getServicesManager().load(clazz);
     }

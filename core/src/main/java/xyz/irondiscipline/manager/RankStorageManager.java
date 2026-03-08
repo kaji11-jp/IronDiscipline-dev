@@ -84,27 +84,19 @@ public class RankStorageManager {
 
     /**
      * 階級を設定
+     * MySQL も H2(MODE=MySQL) も ON DUPLICATE KEY UPDATE 構文をサポートしているため共通化
      */
     public CompletableFuture<Boolean> setRank(UUID playerId, String playerName, Rank rank) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                String sql;
-                if (isMySql()) {
-                    sql = """
-                                INSERT INTO player_ranks (player_id, player_name, rank_id, updated_at)
-                                VALUES (?, ?, ?, ?)
-                                ON DUPLICATE KEY UPDATE
-                                player_name = VALUES(player_name),
-                                rank_id = VALUES(rank_id),
-                                updated_at = VALUES(updated_at)
-                            """;
-                } else {
-                    sql = """
-                                MERGE INTO player_ranks (player_id, player_name, rank_id, updated_at)
-                                KEY (player_id)
-                                VALUES (?, ?, ?, ?)
-                            """;
-                }
+                String sql = """
+                            INSERT INTO player_ranks (player_id, player_name, rank_id, updated_at)
+                            VALUES (?, ?, ?, ?)
+                            ON DUPLICATE KEY UPDATE
+                            player_name = VALUES(player_name),
+                            rank_id = VALUES(rank_id),
+                            updated_at = VALUES(updated_at)
+                        """;
 
                 try (PreparedStatement ps = connection.prepareStatement(sql)) {
                     ps.setString(1, playerId.toString());
@@ -145,13 +137,6 @@ public class RankStorageManager {
             }
             return ranks;
         }, dbExecutor);
-    }
-
-    /**
-     * MySQL使用かどうか
-     */
-    private boolean isMySql() {
-        return "mysql".equalsIgnoreCase(plugin.getConfigManager().getDatabaseType());
     }
 
     /**

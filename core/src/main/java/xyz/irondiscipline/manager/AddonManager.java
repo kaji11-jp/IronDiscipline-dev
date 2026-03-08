@@ -1,5 +1,9 @@
 package xyz.irondiscipline.manager;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.bukkit.configuration.file.YamlConfiguration;
 import xyz.irondiscipline.IronDiscipline;
 
@@ -12,6 +16,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.logging.Level;
@@ -44,18 +49,32 @@ public class AddonManager {
     /** キャッシュ有効時間（1時間） */
     private static final long CACHE_TTL_MS = 60 * 60 * 1000L;
 
+    /** ダウンロードサイズ上限（50 MB） */
+    private static final long MAX_DOWNLOAD_SIZE = 50 * 1024 * 1024L;
+
     /** 公認アドオンキャッシュ（short_key → エントリ） */
     private final Map<String, AddonRegistryEntry> certifiedCache = new ConcurrentHashMap<>();
 
     /** キャッシュ最終更新時刻 */
     private volatile long cacheTimestamp = 0;
 
+    /** キャッシュリフレッシュ実行中フラグ（多重実行防止） */
+    private final AtomicBoolean isRefreshing = new AtomicBoolean(false);
+
     public AddonManager(IronDiscipline plugin) {
         this.plugin = plugin;
         this.pluginsDir = plugin.getDataFolder().getParentFile(); // server/plugins/
 
         // 起動時にバックグラウンドでレジストリ取得
-        CompletableFuture.runAsync(this::refreshRegistry);
+        if (isRefreshing.compareAndSet(false, true)) {
+            CompletableFuture.runAsync(() -> {
+                try {
+                    refreshRegistry();
+                } finally {
+                    isRefreshing.set(false);
+                }
+            });
+        }
     }
 
     // ========== 公認レジストリ（Web API から動的取得） ==========
@@ -65,9 +84,7 @@ public class AddonManager {
      * キャッシュが期限切れの場合はバックグラウンドで更新をトリガーします。
      */
     public Map<String, AddonRegistryEntry> getCertifiedAddons() {
-        if (isCacheExpired()) {
-            CompletableFuture.runAsync(this::refreshRegistry);
-        }
+        triggerRefreshIfExpired();
         return Collections.unmodifiableMap(certifiedCache);
     }
 
@@ -75,9 +92,7 @@ public class AddonManager {
      * アドオン ID が公認レジストリに登録されているかを判定します。
      */
     public boolean isCertified(String addonId) {
-        if (isCacheExpired()) {
-            CompletableFuture.runAsync(this::refreshRegistry);
-        }
+        triggerRefreshIfExpired();
         return certifiedCache.values().stream()
                 .anyMatch(e -> e.id().equalsIgnoreCase(addonId));
     }
@@ -86,11 +101,32 @@ public class AddonManager {
      * レジストリキャッシュを強制リフレッシュします。
      */
     public CompletableFuture<Void> forceRefreshRegistry() {
-        return CompletableFuture.runAsync(this::refreshRegistry);
+        if (isRefreshing.compareAndSet(false, true)) {
+            return CompletableFuture.runAsync(() -> {
+                try {
+                    refreshRegistry();
+                } finally {
+                    isRefreshing.set(false);
+                }
+            });
+        }
+        return CompletableFuture.completedFuture(null);
     }
 
     private boolean isCacheExpired() {
         return System.currentTimeMillis() - cacheTimestamp > CACHE_TTL_MS;
+    }
+
+    private void triggerRefreshIfExpired() {
+        if (isCacheExpired() && isRefreshing.compareAndSet(false, true)) {
+            CompletableFuture.runAsync(() -> {
+                try {
+                    refreshRegistry();
+                } finally {
+                    isRefreshing.set(false);
+                }
+            });
+        }
     }
 
     /**
@@ -144,47 +180,33 @@ public class AddonManager {
      */
     private Map<String, AddonRegistryEntry> parseRegistry(String json) {
         Map<String, AddonRegistryEntry> result = new LinkedHashMap<>();
+        try {
+            JsonObject root = JsonParser.parseString(json).getAsJsonObject();
+            if (!root.has("addons")) return result;
 
-        // "addons" 配列を探す
-        int addonsIdx = json.indexOf("\"addons\"");
-        if (addonsIdx < 0) return result;
+            JsonArray addons = root.getAsJsonArray("addons");
+            for (JsonElement elem : addons) {
+                if (!elem.isJsonObject()) continue;
+                JsonObject obj = elem.getAsJsonObject();
 
-        // 各アドオンオブジェクト { ... } を順に抽出
-        int pos = json.indexOf('[', addonsIdx);
-        if (pos < 0) return result;
+                String id = getJsonString(obj, "id");
+                String name = getJsonString(obj, "name");
+                String shortKey = getJsonString(obj, "short_key");
+                String github = getJsonString(obj, "github");
+                String description = getJsonString(obj, "description");
 
-        while (true) {
-            int objStart = json.indexOf('{', pos);
-            if (objStart < 0) break;
-
-            int objEnd = json.indexOf('}', objStart);
-            if (objEnd < 0) break;
-
-            String obj = json.substring(objStart, objEnd + 1);
-
-            String id = extractJsonValue(obj, "id");
-            String name = extractJsonValue(obj, "name");
-            String shortKey = extractJsonValue(obj, "short_key");
-            String github = extractJsonValue(obj, "github");
-            String description = extractJsonValue(obj, "description");
-
-            if (id != null && shortKey != null && github != null) {
-                result.put(shortKey, new AddonRegistryEntry(
-                        id,
-                        name != null ? name : id,
-                        github,
-                        description != null ? description : ""
-                ));
+                if (id != null && shortKey != null && github != null) {
+                    result.put(shortKey, new AddonRegistryEntry(
+                            id,
+                            name != null ? name : id,
+                            github,
+                            description != null ? description : ""
+                    ));
+                }
             }
-
-            pos = objEnd + 1;
-
-            // 配列の終端チェック
-            int nextBrace = json.indexOf('{', pos);
-            int arrayEnd = json.indexOf(']', pos);
-            if (arrayEnd >= 0 && (nextBrace < 0 || arrayEnd < nextBrace)) break;
+        } catch (Exception e) {
+            plugin.getLogger().log(Level.WARNING, "レジストリ JSON のパースに失敗しました", e);
         }
-
         return result;
     }
 
@@ -251,8 +273,9 @@ public class AddonManager {
                 // 4. 既存JARの重複チェック＆削除
                 removeExistingAddon(descriptor.id());
 
-                // 5. plugins/ にコピー
-                Path destination = pluginsDir.toPath().resolve(asset.fileName());
+                // 5. ファイル名をサニタイズして plugins/ にコピー
+                String safeFileName = sanitizeFileName(asset.fileName());
+                Path destination = pluginsDir.toPath().resolve(safeFileName);
                 Files.move(tempFile, destination, StandardCopyOption.REPLACE_EXISTING);
 
                 plugin.getLogger().info("アドオンインストール完了: " + descriptor.name()
@@ -282,15 +305,16 @@ public class AddonManager {
             try {
                 plugin.getLogger().info("URL からアドオンをダウンロード中: " + jarUrl);
 
-                // ファイル名を URL から抽出
-                String fileName = jarUrl.substring(jarUrl.lastIndexOf('/') + 1);
-                if (!fileName.toLowerCase().endsWith(".jar")) {
-                    fileName = fileName + ".jar";
-                }
+                // ファイル名を URL から抽出してサニタイズ
+                String rawFileName = jarUrl.substring(jarUrl.lastIndexOf('/') + 1);
                 // クエリパラメータ除去
-                if (fileName.contains("?")) {
-                    fileName = fileName.substring(0, fileName.indexOf('?'));
+                if (rawFileName.contains("?")) {
+                    rawFileName = rawFileName.substring(0, rawFileName.indexOf('?'));
                 }
+                if (!rawFileName.toLowerCase().endsWith(".jar")) {
+                    rawFileName = rawFileName + ".jar";
+                }
+                String fileName = sanitizeFileName(rawFileName);
 
                 // 1. JAR をダウンロード（一時ファイルへ）
                 Path tempFile = Files.createTempFile("irdi-addon-", ".jar");
@@ -389,41 +413,29 @@ public class AddonManager {
             return null;
         }
 
-        // JSON をシンプルにパース（外部ライブラリ不要）
         String json = readStream(conn.getInputStream());
         conn.disconnect();
 
-        // "browser_download_url" と "name" を抽出（.jar ファイルのみ）
-        // 簡易パーサー: "assets" 配列内から .jar のアセットを探す
-        String downloadUrl = null;
-        String fileName = null;
-        String tagName = extractJsonValue(json, "tag_name");
+        try {
+            JsonObject release = JsonParser.parseString(json).getAsJsonObject();
+            String tagName = getJsonString(release, "tag_name");
 
-        int assetsStart = json.indexOf("\"assets\"");
-        if (assetsStart < 0) return null;
+            JsonArray assets = release.getAsJsonArray("assets");
+            if (assets == null) return null;
 
-        String assetsSection = json.substring(assetsStart);
-        // 各アセットの browser_download_url を探す
-        int searchFrom = 0;
-        while (true) {
-            int urlIdx = assetsSection.indexOf("\"browser_download_url\"", searchFrom);
-            if (urlIdx < 0) break;
-
-            String url = extractJsonValueAt(assetsSection, urlIdx);
-            if (url != null && url.endsWith(".jar")) {
-                downloadUrl = url;
-                // name を逆方向に探す
-                int nameIdx = assetsSection.lastIndexOf("\"name\"", urlIdx);
-                if (nameIdx >= searchFrom) {
-                    fileName = extractJsonValueAt(assetsSection, nameIdx);
+            for (JsonElement elem : assets) {
+                if (!elem.isJsonObject()) continue;
+                JsonObject asset = elem.getAsJsonObject();
+                String downloadUrl = getJsonString(asset, "browser_download_url");
+                String fileName = getJsonString(asset, "name");
+                if (downloadUrl != null && fileName != null && fileName.endsWith(".jar")) {
+                    return new ReleaseAsset(downloadUrl, fileName, tagName);
                 }
-                break;
             }
-            searchFrom = urlIdx + 1;
+        } catch (Exception e) {
+            plugin.getLogger().log(Level.WARNING, "GitHub API レスポンスのパースに失敗しました", e);
         }
-
-        if (downloadUrl == null || fileName == null) return null;
-        return new ReleaseAsset(downloadUrl, fileName, tagName);
+        return null;
     }
 
     // ========== JAR 検証 ==========
@@ -492,6 +504,7 @@ public class AddonManager {
 
     /**
      * URL からファイルをダウンロードします。
+     * ダウンロードサイズが {@value #MAX_DOWNLOAD_SIZE} バイトを超えると例外をスローします。
      */
     private void downloadFile(String urlStr, Path destination) throws IOException {
         HttpURLConnection conn = (HttpURLConnection) new URL(urlStr).openConnection();
@@ -500,43 +513,55 @@ public class AddonManager {
         conn.setReadTimeout(60000);
         conn.setInstanceFollowRedirects(true);
 
-        // GitHub Releases はリダイレクトする場合がある
-        int responseCode = conn.getResponseCode();
-        if (responseCode == 302 || responseCode == 301) {
-            String redirectUrl = conn.getHeaderField("Location");
+        if (conn.getResponseCode() / 100 != 2) {
             conn.disconnect();
-            conn = (HttpURLConnection) new URL(redirectUrl).openConnection();
-            conn.setRequestProperty("User-Agent", "IronDiscipline-AddonManager");
-            conn.setConnectTimeout(15000);
-            conn.setReadTimeout(60000);
+            throw new IOException("ダウンロード失敗 HTTP " + conn.getResponseCode());
         }
 
-        try (InputStream in = conn.getInputStream()) {
-            Files.copy(in, destination, StandardCopyOption.REPLACE_EXISTING);
+        long contentLength = conn.getContentLengthLong();
+        if (contentLength > MAX_DOWNLOAD_SIZE) {
+            conn.disconnect();
+            throw new IOException("ファイルサイズが上限（50 MB）を超えています: " + contentLength + " bytes");
+        }
+
+        try (InputStream in = conn.getInputStream();
+             OutputStream out = Files.newOutputStream(destination)) {
+            byte[] buffer = new byte[8192];
+            long totalRead = 0;
+            int len;
+            while ((len = in.read(buffer)) != -1) {
+                totalRead += len;
+                if (totalRead > MAX_DOWNLOAD_SIZE) {
+                    throw new IOException("ダウンロードサイズが上限（50 MB）を超えました");
+                }
+                out.write(buffer, 0, len);
+            }
         } finally {
             conn.disconnect();
         }
     }
 
-    // ========== JSON ヘルパー（外部ライブラリなし） ==========
-
-    private String extractJsonValue(String json, String key) {
-        int idx = json.indexOf("\"" + key + "\"");
-        if (idx < 0) return null;
-        return extractJsonValueAt(json, idx);
+    /**
+     * ファイル名をサニタイズします（パストラバーサル防止）。
+     * ディレクトリ区切り文字を除去し、英数字・ハイフン・アンダースコア・ドット以外を置換します。
+     */
+    private String sanitizeFileName(String fileName) {
+        // ディレクトリトラバーサル防止: ファイル名のみを取得
+        String name = java.nio.file.Paths.get(fileName).getFileName().toString();
+        // 安全でない文字を置換
+        name = name.replaceAll("[^a-zA-Z0-9._\\-]", "_");
+        if (name.isEmpty() || name.equals(".jar")) {
+            name = "addon_" + System.currentTimeMillis() + ".jar";
+        }
+        return name;
     }
 
-    private String extractJsonValueAt(String json, int keyIdx) {
-        int colon = json.indexOf(':', keyIdx);
-        if (colon < 0) return null;
+    // ========== JSON ヘルパー（Gson） ==========
 
-        int quoteStart = json.indexOf('"', colon + 1);
-        if (quoteStart < 0) return null;
-
-        int quoteEnd = json.indexOf('"', quoteStart + 1);
-        if (quoteEnd < 0) return null;
-
-        return json.substring(quoteStart + 1, quoteEnd);
+    private String getJsonString(JsonObject obj, String key) {
+        JsonElement elem = obj.get(key);
+        if (elem == null || elem.isJsonNull()) return null;
+        return elem.getAsString();
     }
 
     private String readStream(InputStream is) throws IOException {

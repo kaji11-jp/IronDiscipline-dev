@@ -116,8 +116,11 @@ public class WarningManager {
         public long timestamp;
 
         public String getFormattedDate() {
-            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy/MM/dd HH:mm");
-            return sdf.format(new java.util.Date(timestamp));
+            java.time.format.DateTimeFormatter formatter =
+                    java.time.format.DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm");
+            return java.time.Instant.ofEpochMilli(timestamp)
+                    .atZone(java.time.ZoneId.systemDefault())
+                    .format(formatter);
         }
     }
 }

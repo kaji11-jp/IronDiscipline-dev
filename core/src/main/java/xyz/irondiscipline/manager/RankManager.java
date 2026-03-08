@@ -211,16 +211,18 @@ public class RankManager implements IRankProvider {
 
     /**
      * プレイヤー参加時のキャッシュ読み込み (非同期・PreLogin推奨)
+     * タイムアウトや例外が発生した場合はデフォルト階級 (PRIVATE) を使用しログに記録します。
      */
     public void loadPlayerCache(UUID playerId) {
         // 同期的に待機してキャッシュを確実にする (AsyncPlayerPreLoginEvent用)
         try {
             getRankAsync(playerId).get(5, java.util.concurrent.TimeUnit.SECONDS);
         } catch (java.util.concurrent.TimeoutException e) {
-            plugin.getLogger().warning("Rank load timed out for " + playerId);
-            throw new RuntimeException("Rank loading timed out", e);
+            plugin.getLogger().warning("Rank load timed out for " + playerId + " - defaulting to PRIVATE");
+            rankCache.putIfAbsent(playerId, Rank.PRIVATE);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to load rank", e);
+            plugin.getLogger().warning("Failed to load rank for " + playerId + " - defaulting to PRIVATE: " + e.getMessage());
+            rankCache.putIfAbsent(playerId, Rank.PRIVATE);
         }
     }
 

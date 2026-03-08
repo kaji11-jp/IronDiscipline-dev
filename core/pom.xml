@@ -29,6 +29,14 @@
             <artifactId>paper-api</artifactId>
         </dependency>
 
+        <!-- Gson (Paper サーバーにバンドル済み、コンパイル時の明示宣言) -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.10.1</version>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- LuckPerms API (移行時のみ使用 - オプション) -->
         <dependency>
             <groupId>net.luckperms</groupId>
