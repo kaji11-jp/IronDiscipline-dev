@@ -2,9 +2,6 @@
 # ===========================================
 #  IronDiscipline-dev 自動アップデートスクリプト
 # ===========================================
-# GitHubから最新のビルド(IronDiscipline-dev-latest.jar)をダウンロードして
-# サーバーを再起動します。
-
 GITHUB_USER="IronDiscipline-Project"
 GITHUB_REPO="IronDiscipline-dev"
 JAR_NAME="IronDiscipline-dev-latest.jar"
@@ -25,20 +22,24 @@ fi
 # 2. 最新版のダウンロード
 echo "[1/3] GitHubから最新版をダウンロード中..."
 echo "URL: $DOWNLOAD_URL"
+cd "$PLUGIN_DIR"
 
-cd $PLUGIN_DIR
+# 古いバージョン名のjarを先に削除
+rm -f IronDiscipline-dev-2.0.0-dev.jar 2>/dev/null
+for jar in IronDiscipline-*.jar; do
+    [ "$jar" = "$JAR_NAME" ] && continue
+    rm -f "$jar"
+done
+
 # バックアップ
 if [ -f "$JAR_NAME" ]; then
     mv "$JAR_NAME" "${JAR_NAME}.bak"
 fi
 
-# ダウンロード (curl -L でリダイレクト追従)
+# ダウンロード
 if curl -L -o "$JAR_NAME" "$DOWNLOAD_URL"; then
     echo "ダウンロード成功！"
     rm -f "${JAR_NAME}.bak"
-    # 古いバージョン名のjarがあれば削除
-    rm -f IronDiscipline-*.jar 2>/dev/null
-    rm -f IronDiscipline-dev-2.0.0-dev.jar 2>/dev/null
 else
     echo "ダウンロード失敗。バックアップを復元します。"
     if [ -f "${JAR_NAME}.bak" ]; then
@@ -50,6 +51,5 @@ fi
 # 3. サーバー再起動
 echo "[2/3] サーバーを再起動中..."
 systemctl restart minecraft
-
 echo "[3/3] 完了！"
 echo "サーバーログを確認: journalctl -u minecraft -f"
